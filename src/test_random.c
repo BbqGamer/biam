@@ -1,7 +1,7 @@
 #include "random.h"
 
-#define REPS 10
-#define ARR_SIZE 30
+#define REPS 20
+#define ARR_SIZE 10
 
 int main() {
     int i, j;
