@@ -11,7 +11,7 @@ $(TEST_RANDOM): src/random.c src/test_random.c | $(BUILD_DIR)
 $(BENCHMARK): src/random.c src/benchmark.c | $(BUILD_DIR)
 	gcc $(CFLAGS) $^ -o $@
 
-$(QAP): src/qap.c | $(BUILD_DIR)
+$(QAP): src/qap.c src/random.c| $(BUILD_DIR)
 	gcc $(CFLAGS) $^ -o $@
 
 $(BUILD_DIR):
