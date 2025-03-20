@@ -1,4 +1,5 @@
 BUILD_DIR := build
+LDLAGS  = -lm
 TEST_RANDOM := $(BUILD_DIR)/test_random
 BENCHMARK := $(BUILD_DIR)/benchmark
 QAP := $(BUILD_DIR)/qap
@@ -12,7 +13,7 @@ $(BENCHMARK): src/random.c src/benchmark.c | $(BUILD_DIR)
 	gcc $(CFLAGS) $^ -o $@
 
 $(QAP): src/qap.c src/random.c| $(BUILD_DIR)
-	gcc $(CFLAGS) $^ -o $@
+	gcc $(CFLAGS) $^ -o $@ $(LDLAGS)
 
 $(BUILD_DIR):
 	mkdir $(BUILD_DIR)
