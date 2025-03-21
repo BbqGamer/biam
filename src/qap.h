@@ -12,3 +12,4 @@ int n;
 void read_instance(char *filename);
 int evaluate_solution(int *sol);
 void heuristic(int *solution);
+int get_delta(int *sol, int i, int j);

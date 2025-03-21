@@ -1,6 +1,7 @@
 #include "qap.h"
 #include "random.h"
 #include <stdio.h>
+#include <stdbool.h>
 
 void read_instance(char *filename) {
   FILE *fp = fopen(filename, "r");
@@ -129,6 +130,37 @@ void heuristic(int *solution) {
   }
 }
 
+int localsearch(int *solution) {
+    int i, j, besti, bestj, tmp;
+    int delta, best_delta, best_score = evaluate_solution(solution);
+    bool improved = true;
+    while (improved) {
+        improved = false;
+        best_delta = 0;
+
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n; j++) {
+                delta = get_delta(solution, i, j);
+                if (delta < best_delta) {
+                    best_delta = delta;
+                    besti = i;
+                    bestj = j;
+                }
+            }
+        }
+
+        if (best_delta < 0) {
+            improved = true;
+            best_score += best_delta;
+
+            tmp = solution[besti];
+            solution[besti] = solution[bestj];
+            solution[bestj] = tmp;
+        }
+    }
+    return best_score;
+}
+
 int main(int argc, char *argv[]) {
   if (argc != 2) {
     fprintf(stderr, "Usage %s [input file].dat", argv[0]);
@@ -173,5 +205,11 @@ int main(int argc, char *argv[]) {
   solution2[a] = solution2[b];
   solution2[b] = temp;
   int result3 = evaluate_solution(solution2);
-  printf("Before: %d\tAfter: %d", result2 + delta, result3);
+  printf("Before: %d\tAfter: %d\n", result2 + delta, result3);
+
+  random_permutation(solution, n);
+  int ls_before = evaluate_solution(solution);
+  int ls_score = localsearch(solution);
+  int ls_score_sanity = evaluate_solution(solution);
+  printf("Before LS: %d\tAfter LS: %d (%d)\n", ls_before, ls_score, ls_score_sanity);
 }
