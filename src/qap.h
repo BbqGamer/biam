@@ -5,11 +5,15 @@
 
 #define MAX_QAP_SIZE 256
 
-int A[MAX_QAP_SIZE * MAX_QAP_SIZE];
-int B[MAX_QAP_SIZE * MAX_QAP_SIZE];
-int n;
+struct QAP {
+    int A[MAX_QAP_SIZE * MAX_QAP_SIZE];
+    int B[MAX_QAP_SIZE * MAX_QAP_SIZE];
+    int n;
+};
 
-void read_instance(char *filename);
-int evaluate_solution(int *sol);
-void heuristic(int *solution);
-int get_delta(int *sol, int i, int j);
+void read_instance(char *filename, struct QAP *qap);
+int evaluate_solution(int *sol, struct QAP *qap);
+int get_delta(int *sol, int i, int j, struct QAP *qap);
+
+void heuristic(int *solution, struct QAP *qap);
+int localsearch(int *solution, struct QAP *qap);

@@ -2,17 +2,17 @@ BUILD_DIR := build
 LDLAGS  = -lm
 TEST_RANDOM := $(BUILD_DIR)/test_random
 BENCHMARK := $(BUILD_DIR)/benchmark
-QAP := $(BUILD_DIR)/qap
+TEST_QAP := $(BUILD_DIR)/test_qap
 
-all: $(TEST_RANDOM) $(BENCHMARK) $(QAP)
+all: $(TEST_RANDOM) $(BENCHMARK) $(TEST_QAP)
 
 $(TEST_RANDOM): src/random.c src/test_random.c | $(BUILD_DIR)
 	gcc $(CFLAGS) $^ -o $@
 
-$(BENCHMARK): src/random.c src/benchmark.c | $(BUILD_DIR)
+$(BENCHMARK): src/random.c src/qap.c src/benchmark.c | $(BUILD_DIR)
 	gcc $(CFLAGS) $^ -o $@
 
-$(QAP): src/qap.c src/random.c| $(BUILD_DIR)
+$(TEST_QAP): src/test_qap.c src/qap.c src/random.c| $(BUILD_DIR)
 	gcc $(CFLAGS) $^ -o $@ $(LDLAGS)
 
 $(BUILD_DIR):
