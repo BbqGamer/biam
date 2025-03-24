@@ -126,7 +126,8 @@ void heuristic(int *solution, struct QAP *qap) {
   }
 }
 
-int localsearchgreedy(int *solution, struct QAP *qap, int *evaluated) {
+int localsearchgreedy(int *solution, struct QAP *qap, int *evaluated,
+                      int *steps) {
   int i, j, besti, bestj, tmp;
   int delta, best_score = evaluate_solution(solution, qap);
   bool improved = true;
@@ -154,6 +155,7 @@ int localsearchgreedy(int *solution, struct QAP *qap, int *evaluated) {
     *evaluated += i + j;
 
     if (improved) {
+      (*steps)++;
       best_score += delta;
 
       tmp = solution[besti];
@@ -164,7 +166,8 @@ int localsearchgreedy(int *solution, struct QAP *qap, int *evaluated) {
   return best_score;
 }
 
-int localsearchsteepest(int *solution, struct QAP *qap, int *evaluated) {
+int localsearchsteepest(int *solution, struct QAP *qap, int *evaluated,
+                        int *steps) {
   int i, j, besti, bestj, tmp;
   int delta, best_delta, best_score = evaluate_solution(solution, qap);
   bool improved = true;
@@ -184,6 +187,7 @@ int localsearchsteepest(int *solution, struct QAP *qap, int *evaluated) {
     }
     *evaluated += i + j;
     if (best_delta < 0) {
+      (*steps)++;
       improved = true;
       best_score += best_delta;
 
@@ -195,11 +199,12 @@ int localsearchsteepest(int *solution, struct QAP *qap, int *evaluated) {
   return best_score;
 }
 
-int randomwalk(int *solution, struct QAP *qap, int *evaluated) {
+int randomwalk(int *solution, struct QAP *qap, int *evaluated, int *steps) {
   int a, b, tmp;
-  int k=0;
+  int k = 0;
   for (int _ = 0; _ < 1000; _++) {
     k++;
+    (*steps)++;
     random_pair(&a, &b, qap->n);
     tmp = solution[a];
     solution[a] = solution[b];

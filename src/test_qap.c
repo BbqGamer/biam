@@ -1,7 +1,7 @@
 #include "qap.h"
 #include "random.h"
 #include <stdio.h>
-typedef int (*evalfunc)(int *, struct QAP *, int *);
+typedef int (*evalfunc)(int *, struct QAP *, int *, int *);
 
 void execute_test(evalfunc search, struct QAP *instance, int *solution,
                   char *name) {
@@ -11,16 +11,19 @@ void execute_test(evalfunc search, struct QAP *instance, int *solution,
   int min = 1000000000;
   int evaluated;
   int sum_evaluated = 0;
+  int steps;
+  int sum_steps = 0;
   for (int _ = 0; _ < K; _++) {
     evaluated = 0;
+    steps = 0;
 
     srand(_ + 2);
     random_permutation(solution, instance->n);
-    search(solution, instance, &evaluated);
+    search(solution, instance, &evaluated, &steps);
     int result = evaluate_solution(solution, instance);
-    // printf("evaluated %d",evaluated);
     sum += result;
     sum_evaluated += evaluated;
+    sum_steps += steps;
     if (result > max) {
       max = result;
     } else if (result < min) {
@@ -28,7 +31,8 @@ void execute_test(evalfunc search, struct QAP *instance, int *solution,
     }
   }
   printf("%s : %.2f (%d - %d)\n", name, (float)sum / K, min, max);
-  printf("Evaluated solutions: %.2f\n\n", (float)sum_evaluated/K);
+  printf("Evaluated solutions: %.2f Steps: %.2f \n\n", (float)sum_evaluated / K,
+         (float)sum_steps / K);
 }
 
 int main(int argc, char *argv[]) {
