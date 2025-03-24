@@ -1,7 +1,7 @@
 #include "qap.h"
 #include "random.h"
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 void read_instance(char *filename, struct QAP *qap) {
   FILE *fp = fopen(filename, "r");
@@ -54,10 +54,12 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
 
 */
   int delta;
-  delta = (qap->A[j * qap->n + j] - qap->A[i * qap->n + i]) *
-      (qap->B[sol[i] * qap->n + sol[i]] - qap->B[sol[j] * qap->n + sol[j]]) +
+  delta =
+      (qap->A[j * qap->n + j] - qap->A[i * qap->n + i]) *
+          (qap->B[sol[i] * qap->n + sol[i]] -
+           qap->B[sol[j] * qap->n + sol[j]]) +
       (qap->A[j * qap->n + i] - qap->A[i * qap->n + j]) *
-      (qap->B[sol[i] * qap->n + sol[j]] - qap->B[sol[j] * qap->n + sol[i]]);
+          (qap->B[sol[i] * qap->n + sol[j]] - qap->B[sol[j] * qap->n + sol[i]]);
   // SUM
   int sum = 0;
   for (int k = 0; k < qap->n; k++) {
@@ -65,14 +67,15 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
       continue;
     }
     sum += (qap->A[j * qap->n + k] - qap->A[i * qap->n + k]) *
-       (qap->B[sol[i] * qap->n + sol[k]] - qap->B[sol[j] * qap->n + sol[k]]) +
-       (qap->A[k * qap->n + j] - qap->A[k * qap->n + i]) *
-       (qap->B[sol[k] * qap->n + sol[i]] - qap->B[sol[k] * qap->n + sol[j]]);
+               (qap->B[sol[i] * qap->n + sol[k]] -
+                qap->B[sol[j] * qap->n + sol[k]]) +
+           (qap->A[k * qap->n + j] - qap->A[k * qap->n + i]) *
+               (qap->B[sol[k] * qap->n + sol[i]] -
+                qap->B[sol[k] * qap->n + sol[j]]);
   }
   delta += sum;
   return delta;
 }
-
 
 int argmin(int *array, int n) {
   int idx = 0;
@@ -111,56 +114,82 @@ void heuristic(int *solution, struct QAP *qap) {
       subsumsB[j] += qap->B[i * qap->n + j];
     }
   }
-  // printf("SubsumsA\n");
-  // for (int i = 0; i < n; i++) {
-  //   printf("%d ", subsumsA[i]);
-  // }
-  // printf("\nSubsumsB\n");
-  // for (int i = 0; i < n; i++) {
-  //   printf("%d ", subsumsB[i]);
-  // }
-  // printf("\n");
+
   int i = 0;
   int j = 0;
   for (int _ = 0; _ < qap->n; _++) {
     i = argmin(subsumsA, qap->n);
-    // printf("i: %d\n", i);
     j = argmax(subsumsB, qap->n);
-    // printf("j: %d\n", j);
     subsumsA[i] = 100000000;
     subsumsB[j] = -100000000;
     solution[j] = i;
   }
 }
 
-int localsearch(int *solution, struct QAP *qap) {
-    int i, j, besti, bestj, tmp;
-    int delta, best_delta, best_score = evaluate_solution(solution, qap);
-    bool improved = true;
-    while (improved) {
-        improved = false;
-        best_delta = 0;
+int localsearchgreedy(int *solution, struct QAP *qap) {
+  int i, j, besti, bestj, tmp;
+  int delta, best_score = evaluate_solution(solution, qap);
+  bool improved = true;
+  int permi[qap->n], permj[qap->n];
 
-        for (i = 0; i < qap->n; i++) {
-            for (j = 0; j < qap->n; j++) {
-                delta = get_delta(solution, i, j, qap);
-                if (delta < best_delta) {
-                    best_delta = delta;
-                    besti = i;
-                    bestj = j;
-                }
-            }
+  while (improved) {
+    improved = false;
+    random_permutation(permi, qap->n);
+    for (i = 0; i < qap->n; i++) {
+      if (improved) {
+        break;
+      }
+
+      random_permutation(permj, qap->n);
+      for (j = 0; j < qap->n; j++) {
+        delta = get_delta(solution, permi[i], permj[j], qap);
+        if (delta < 0) {
+          besti = permi[i];
+          bestj = permj[j];
+          improved = true;
+          break;
         }
-
-        if (best_delta < 0) {
-            improved = true;
-            best_score += best_delta;
-
-            tmp = solution[besti];
-            solution[besti] = solution[bestj];
-            solution[bestj] = tmp;
-        }
+      }
     }
-    return best_score;
+
+    if (improved) {
+      best_score += delta;
+
+      tmp = solution[besti];
+      solution[besti] = solution[bestj];
+      solution[bestj] = tmp;
+    }
+  }
+  return best_score;
 }
 
+int localsearchsteepest(int *solution, struct QAP *qap) {
+  int i, j, besti, bestj, tmp;
+  int delta, best_delta, best_score = evaluate_solution(solution, qap);
+  bool improved = true;
+  while (improved) {
+    improved = false;
+    best_delta = 0;
+
+    for (i = 0; i < qap->n; i++) {
+      for (j = 0; j < qap->n; j++) {
+        delta = get_delta(solution, i, j, qap);
+        if (delta < best_delta) {
+          best_delta = delta;
+          besti = i;
+          bestj = j;
+        }
+      }
+    }
+
+    if (best_delta < 0) {
+      improved = true;
+      best_score += best_delta;
+
+      tmp = solution[besti];
+      solution[besti] = solution[bestj];
+      solution[bestj] = tmp;
+    }
+  }
+  return best_score;
+}

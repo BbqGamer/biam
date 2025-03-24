@@ -1,5 +1,27 @@
 #include "qap.h"
 #include "random.h"
+typedef int (*evalfunc)(int *, struct QAP *);
+
+void execute_test(evalfunc search, struct QAP *instance, int *solution,
+                  char *name) {
+                    int K = 1000;
+  int sum = 0;
+  int max = -1;
+  int min = 1000000000;
+  for (int _ = 0; _ < K; _++) {
+    srand(_ + 2);
+    random_permutation(solution, instance->n);
+    search(solution, instance);
+    int result = evaluate_solution(solution, instance);
+    sum += result;
+    if (result > max) {
+      max = result;
+    } else if (result < min) {
+      min = result;
+    }
+  }
+  printf("%s : %.2f (%d - %d)\n\n", name, (float)sum/K, min, max);
+}
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
@@ -30,27 +52,28 @@ int main(int argc, char *argv[]) {
       min_random = result;
     }
   }
-  printf("Random : %d (%d - %d)\n\n", sum_random, min_random, max_random);
+  printf("Random : %.2f (%d - %d)\n\n", (float)sum_random/10, min_random, max_random);
   for (int i = 0; i < instance.n; i++) {
     solution[i] = -1;
   }
   heuristic(solution, &instance);
   int h_score = evaluate_solution(solution, &instance);
-  printf("Heuristic: %d", h_score);
+  printf("Heuristic: %d\n", h_score);
 
-  int a, b;
-  random_pair(&a, &b, instance.n);
-  int delta = get_delta(solution, a, b, &instance);
-  printf("\nA: %d, B: %d\n", a, b);
-  int temp = solution[a];
-  solution[a] = solution[b];
-  solution[b] = temp;
-  int res_after_swap = evaluate_solution(solution, &instance);
-  printf("Before: %d\tAfter: %d\n", h_score + delta, res_after_swap);
+  execute_test(localsearchgreedy, &instance, solution, "Greedy");
+    execute_test(localsearchsteepest, &instance, solution, "Steepest");
 
-  random_permutation(solution, instance.n);
-  int ls_before = evaluate_solution(solution, &instance);
-  int ls_score = localsearch(solution, &instance);
-  int ls_score_sanity = evaluate_solution(solution, &instance);
-  printf("Before LS: %d\tAfter LS: %d (%d)\n", ls_before, ls_score, ls_score_sanity);
+
+  // random_permutation(solution, instance.n);
+  // int ls_before = evaluate_solution(solution, &instance);
+  // int ls_score = localsearchsteepest(solution, &instance);
+  // int ls_score_sanity = evaluate_solution(solution, &instance);
+  // printf("Before LS: %d\tAfter LS: %d (%d)\n", ls_before, ls_score,
+  //        ls_score_sanity);
+
+  // random_permutation(solution, instance.n);
+  // ls_score = localsearchgreedy(solution, &instance);
+  // ls_score_sanity = evaluate_solution(solution, &instance);
+  // printf("Before LS: %d\tAfter LS: %d (%d)\n", ls_before, ls_score,
+  //        ls_score_sanity);
 }
