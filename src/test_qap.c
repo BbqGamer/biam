@@ -1,26 +1,34 @@
 #include "qap.h"
 #include "random.h"
-typedef int (*evalfunc)(int *, struct QAP *);
+#include <stdio.h>
+typedef int (*evalfunc)(int *, struct QAP *, int *);
 
 void execute_test(evalfunc search, struct QAP *instance, int *solution,
                   char *name) {
-                    int K = 1000;
+  int K = 10;
   int sum = 0;
   int max = -1;
   int min = 1000000000;
+  int evaluated;
+  int sum_evaluated = 0;
   for (int _ = 0; _ < K; _++) {
+    evaluated = 0;
+
     srand(_ + 2);
     random_permutation(solution, instance->n);
-    search(solution, instance);
+    search(solution, instance, &evaluated);
     int result = evaluate_solution(solution, instance);
+    // printf("evaluated %d",evaluated);
     sum += result;
+    sum_evaluated += evaluated;
     if (result > max) {
       max = result;
     } else if (result < min) {
       min = result;
     }
   }
-  printf("%s : %.2f (%d - %d)\n\n", name, (float)sum/K, min, max);
+  printf("%s : %.2f (%d - %d)\n", name, (float)sum / K, min, max);
+  printf("Evaluated solutions: %.2f\n\n", (float)sum_evaluated/K);
 }
 
 int main(int argc, char *argv[]) {
@@ -52,7 +60,8 @@ int main(int argc, char *argv[]) {
       min_random = result;
     }
   }
-  printf("Random : %.2f (%d - %d)\n\n", (float)sum_random/10, min_random, max_random);
+  printf("Random : %.2f (%d - %d)\n\n", (float)sum_random / 10, min_random,
+         max_random);
   for (int i = 0; i < instance.n; i++) {
     solution[i] = -1;
   }
@@ -61,8 +70,8 @@ int main(int argc, char *argv[]) {
   printf("Heuristic: %d\n", h_score);
 
   execute_test(localsearchgreedy, &instance, solution, "Greedy");
-    execute_test(localsearchsteepest, &instance, solution, "Steepest");
-
+  execute_test(localsearchsteepest, &instance, solution, "Steepest");
+  execute_test(randomwalk, &instance, solution, "Random Walk");
 
   // random_permutation(solution, instance.n);
   // int ls_before = evaluate_solution(solution, &instance);
