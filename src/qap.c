@@ -35,6 +35,27 @@ void read_instance(char *filename, struct QAP *qap) {
   fclose(fp);
 }
 
+void read_solution(char *filename, int n, int* solution, int* score) {
+  FILE *fp = fopen(filename, "r");
+  int i, *p, nsol;
+
+  fscanf(fp, "%d", &nsol);
+  if (n != nsol) {
+    fprintf(stderr, "Input sizes doesn't match (%d != %d)\n", n, nsol);
+    exit(1);
+  }
+
+  fscanf(fp, "%d", score);
+
+  p = solution;
+  for (i = 0; i < nsol; i++) {
+    fscanf(fp, "%d", p);
+    p++;
+  }
+
+  fclose(fp);
+}
+
 int evaluate_solution(int *sol, struct QAP *qap) {
   int result = 0;
   for (int i = 0; i < qap->n; i++) {

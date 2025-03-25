@@ -12,6 +12,7 @@ struct QAP {
 };
 
 void read_instance(char *filename, struct QAP *qap);
+void read_solution(char *filename, int n, int* solution, int* score);
 int evaluate_solution(int *sol, struct QAP *qap);
 int get_delta(int *sol, int i, int j, struct QAP *qap);
 

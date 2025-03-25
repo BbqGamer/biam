@@ -1,6 +1,7 @@
 #include "qap.h"
 #include "random.h"
 #include <stdio.h>
+#include <string.h>
 typedef int (*evalfunc)(int *, struct QAP *, int *, int *);
 
 void execute_test(evalfunc search, struct QAP *instance, int *solution,
@@ -41,11 +42,28 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  struct QAP instance;
-  read_instance(argv[1], &instance);
-  printf("Loaded file! \n\n");
+  char *dat_path = argv[1];
+  char sln_path[1024];
 
-  int solution[MAX_QAP_SIZE];
+  strncpy(sln_path, dat_path, sizeof(sln_path) - 1);
+  sln_path[sizeof(sln_path) - 1] = '\0';
+
+  char *dot = strrchr(sln_path, '.');
+  if (dot && strcmp(dot, ".dat") == 0) {
+    strcpy(dot, ".sln");
+  } else {
+    fprintf(stderr, "Input file must have a .dat extension.\n");
+    exit(1);
+  }
+
+  struct QAP instance;
+  read_instance(dat_path, &instance);
+  printf("Loaded .dat file! \n");
+
+  int score, solution[MAX_QAP_SIZE];
+  read_solution(sln_path, instance.n, solution, &score);
+  printf("Loaded .sln file!\n\n");
+  printf("Optimal score: %d\n\n", score);
 
   execute_test(randomsearch, &instance, solution, "Random Search");
   execute_test(randomwalk, &instance, solution, "Random Walk");
