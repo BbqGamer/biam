@@ -102,7 +102,7 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
 
 int argmin(int *array, int n) {
   int idx = 0;
-  int result = 1000000000;
+  int result = INT_MAX;
   for (int i = 0; i < n; i++) {
     if (array[i] < result) {
       result = array[i];
@@ -114,7 +114,7 @@ int argmin(int *array, int n) {
 
 int argmax(int *array, int n) {
   int idx = 0;
-  int result = -1000000000;
+  int result = INT_MIN;
   for (int i = 0; i < n; i++) {
     if (array[i] > result) {
       result = array[i];
@@ -143,8 +143,8 @@ int heuristic(int *solution, struct QAP *qap, int *evaluated, int *steps) {
   for (int _ = 0; _ < qap->n; _++) {
     i = argmin(subsumsA, qap->n);
     j = argmax(subsumsB, qap->n);
-    subsumsA[i] = 100000000;
-    subsumsB[j] = -100000000;
+    subsumsA[i] = INT_MAX;
+    subsumsB[j] = INT_MIN;
     solution[j] = i;
   }
   return evaluate_solution(solution, qap);

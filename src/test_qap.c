@@ -1,6 +1,7 @@
 #include "qap.h"
 #include "random.h"
 #include <stdio.h>
+#include <limits.h>
 #include <string.h>
 typedef int (*evalfunc)(int *, struct QAP *, int *, int *);
 
@@ -9,7 +10,7 @@ void execute_test(evalfunc search, struct QAP *instance, int *solution,
   int K = 10;
   int sum = 0;
   int max = -1;
-  int min = 1000000000;
+  int min = INT_MAX;
   int evaluated;
   int sum_evaluated = 0;
   int steps;
