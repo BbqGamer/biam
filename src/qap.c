@@ -147,9 +147,6 @@ int heuristic(int *solution, struct QAP *qap, int *evaluated, int *steps) {
     subsumsB[j] = -100000000;
     solution[j] = i;
   }
-
-  *evaluated = 1;
-  *steps = 1;
   return evaluate_solution(solution, qap);
 }
 
@@ -234,12 +231,12 @@ int randomsearch(int *solution, struct QAP *qap, int *evaluated, int *steps) {
   for (i = 0; i < RANDOM_SEARCH_ITERATIONS; i++) {
     random_permutation(tmp_solution, qap->n);
     result = evaluate_solution(tmp_solution, qap);
+    *evaluated += 1;
     if (result < best) {
       best = result;
       memcpy(solution, tmp_solution, qap->n * sizeof(int));
     }
   }
-  *evaluated += i;
   return best;
 }
 
@@ -252,12 +249,11 @@ int randomwalk(int *solution, struct QAP *qap, int *evaluated, int *steps) {
   random_permutation(tmp_solution, qap->n);
   for (int i = 0; i < RANDOM_WALK_ITERATIONS; i++) {
     result = evaluate_solution(solution, qap);
+    *evaluated += 1;
     if (result < best) {
       best = result;
       memcpy(tmp_solution, solution, qap->n * sizeof(int));
     }
-    (*evaluated)++;
-    (*steps)++;
     random_pair(&a, &b, qap->n);
     tmp = solution[a];
     solution[a] = solution[b];
