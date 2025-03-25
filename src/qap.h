@@ -15,9 +15,10 @@ void read_instance(char *filename, struct QAP *qap);
 int evaluate_solution(int *sol, struct QAP *qap);
 int get_delta(int *sol, int i, int j, struct QAP *qap);
 
-void heuristic(int *solution, struct QAP *qap);
+int heuristic(int *solution, struct QAP *qap, int *evaluated, int *steps);
+int randomsearch(int *solution, struct QAP *qap, int *evaluated, int *steps);
+int randomwalk(int *solution, struct QAP *qap, int *evaluated, int *steps);
 int localsearchgreedy(int *solution, struct QAP *qap, int *evaluated,
                       int *steps);
 int localsearchsteepest(int *solution, struct QAP *qap, int *evaluated,
                         int *steps);
-int randomwalk(int *solution, struct QAP *qap, int *evaluated, int *steps);

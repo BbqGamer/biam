@@ -1,7 +1,9 @@
 #include "qap.h"
 #include "random.h"
+#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 void read_instance(char *filename, struct QAP *qap) {
   FILE *fp = fopen(filename, "r");
@@ -101,7 +103,7 @@ int argmax(int *array, int n) {
   return idx;
 }
 
-void heuristic(int *solution, struct QAP *qap) {
+int heuristic(int *solution, struct QAP *qap, int *evaluated, int *steps) {
   int subsumsA[MAX_QAP_SIZE];
   int subsumsB[MAX_QAP_SIZE];
   for (int i = 0; i < qap->n; i++) {
@@ -124,6 +126,10 @@ void heuristic(int *solution, struct QAP *qap) {
     subsumsB[j] = -100000000;
     solution[j] = i;
   }
+
+  *evaluated = 1;
+  *steps = 1;
+  return evaluate_solution(solution, qap);
 }
 
 int localsearchgreedy(int *solution, struct QAP *qap, int *evaluated,
@@ -199,18 +205,42 @@ int localsearchsteepest(int *solution, struct QAP *qap, int *evaluated,
   return best_score;
 }
 
+#define RANDOM_SEARCH_ITERATIONS 1000
+
+int randomsearch(int *solution, struct QAP *qap, int *evaluated, int *steps) {
+  int tmp_solution[MAX_QAP_SIZE];
+  int i, result, best = INT_MAX;
+  for (i = 0; i < RANDOM_SEARCH_ITERATIONS; i++) {
+    random_permutation(tmp_solution, qap->n);
+    result = evaluate_solution(tmp_solution, qap);
+    if (result < best) {
+      best = result;
+      memcpy(solution, tmp_solution, qap->n * sizeof(int));
+    }
+  }
+  *evaluated += i;
+  return best;
+}
+
+#define RANDOM_WALK_ITERATIONS 1000
+
 int randomwalk(int *solution, struct QAP *qap, int *evaluated, int *steps) {
-  int a, b, tmp;
-  int k = 0;
-  for (int _ = 0; _ < 1000; _++) {
-    k++;
+  int tmp_solution[MAX_QAP_SIZE];
+  int i, a, b, result, best = INT_MAX;
+  int tmp;
+  random_permutation(tmp_solution, qap->n);
+  for (int i = 0; i < RANDOM_WALK_ITERATIONS; i++) {
+    result = evaluate_solution(solution, qap);
+    if (result < best) {
+      best = result;
+      memcpy(tmp_solution, solution, qap->n * sizeof(int));
+    }
+    (*evaluated)++;
     (*steps)++;
     random_pair(&a, &b, qap->n);
     tmp = solution[a];
     solution[a] = solution[b];
     solution[b] = tmp;
   }
-  *evaluated += k;
-  int result = evaluate_solution(solution, qap);
-  return result;
+  return best;
 }
