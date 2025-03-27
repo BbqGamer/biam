@@ -11,15 +11,20 @@ struct QAP {
   int n;
 };
 
+struct QAP_results {
+  int score;
+  int solution[MAX_QAP_SIZE];
+  int evaluated;
+  int steps;
+};
+
 void read_instance(char *filename, struct QAP *qap);
-void read_solution(char *filename, int n, int* solution, int* score);
+void read_solution(char *filename, int n, struct QAP_results *res);
 int evaluate_solution(int *sol, struct QAP *qap);
 int get_delta(int *sol, int i, int j, struct QAP *qap);
 
-int heuristic(int *solution, struct QAP *qap, int *evaluated, int *steps);
-int randomsearch(int *solution, struct QAP *qap, int *evaluated, int *steps);
-int randomwalk(int *solution, struct QAP *qap, int *evaluated, int *steps);
-int localsearchgreedy(int *solution, struct QAP *qap, int *evaluated,
-                      int *steps);
-int localsearchsteepest(int *solution, struct QAP *qap, int *evaluated,
-                        int *steps);
+void heuristic(struct QAP *qap, struct QAP_results *res);
+void randomsearch(struct QAP *qap, struct QAP_results *res);
+void randomwalk(struct QAP *qap, struct QAP_results *res);
+void localsearchgreedy(struct QAP *qap, struct QAP_results *res);
+void localsearchsteepest(struct QAP *qap, struct QAP_results *res);

@@ -1,35 +1,36 @@
 #include "qap.h"
 #include "random.h"
+#include <assert.h>
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-typedef int (*evalfunc)(int *, struct QAP *, int *, int *);
+typedef void (*evalfunc)(struct QAP *, struct QAP_results *);
 
-void execute_test(evalfunc search, struct QAP *instance, int *solution,
-                  char *name) {
+void execute_test(evalfunc search, struct QAP *instance, char *name) {
   int K = 10;
   int sum = 0;
-  int max = -1;
-  int min = INT_MAX;
-  int evaluated;
-  int sum_evaluated = 0;
-  int steps;
+  int max = INT_MIN, min = INT_MAX;
+  int score, sum_evaluated = 0;
   int sum_steps = 0;
+
+  struct QAP_results res;
+
   for (int _ = 0; _ < K; _++) {
-    evaluated = 0;
-    steps = 0;
+    res.evaluated = 0;
+    res.steps = 0;
 
     srand(_ + 2);
-    random_permutation(solution, instance->n);
-    search(solution, instance, &evaluated, &steps);
-    int result = evaluate_solution(solution, instance);
-    sum += result;
-    sum_evaluated += evaluated;
-    sum_steps += steps;
-    if (result > max) {
-      max = result;
-    } else if (result < min) {
-      min = result;
+    random_permutation(res.solution, instance->n);
+    search(instance, &res);
+    score = evaluate_solution(res.solution, instance);
+    assert(res.score == score);
+    sum += score;
+    sum_evaluated += res.evaluated;
+    sum_steps += res.steps;
+    if (score > max) {
+      max = score;
+    } else if (score < min) {
+      min = score;
     }
   }
   printf("%s : %.2f (%d - %d)\n", name, (float)sum / K, min, max);
@@ -61,14 +62,14 @@ int main(int argc, char *argv[]) {
   read_instance(dat_path, &instance);
   printf("Loaded .dat file! \n");
 
-  int score, solution[MAX_QAP_SIZE];
-  read_solution(sln_path, instance.n, solution, &score);
+  struct QAP_results res;
+  read_solution(sln_path, instance.n, &res);
   printf("Loaded .sln file!\n\n");
-  printf("Optimal score: %d\n\n", score);
+  printf("Optimal score: %d\n\n", res.score);
 
-  execute_test(randomsearch, &instance, solution, "Random Search");
-  execute_test(randomwalk, &instance, solution, "Random Walk");
-  execute_test(heuristic, &instance, solution, "Heuristic");
-  execute_test(localsearchgreedy, &instance, solution, "Greedy");
-  execute_test(localsearchsteepest, &instance, solution, "Steepest");
+  execute_test(randomsearch, &instance, "Random Search");
+  execute_test(randomwalk, &instance, "Random Walk");
+  execute_test(heuristic, &instance, "Heuristic");
+  execute_test(localsearchgreedy, &instance, "Greedy");
+  execute_test(localsearchsteepest, &instance, "Steepest");
 }

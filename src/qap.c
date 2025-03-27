@@ -35,7 +35,7 @@ void read_instance(char *filename, struct QAP *qap) {
   fclose(fp);
 }
 
-void read_solution(char *filename, int n, int* solution, int* score) {
+void read_solution(char *filename, int n, struct QAP_results *res) {
   FILE *fp = fopen(filename, "r");
   int i, *p, nsol;
 
@@ -45,9 +45,9 @@ void read_solution(char *filename, int n, int* solution, int* score) {
     exit(1);
   }
 
-  fscanf(fp, "%d", score);
+  fscanf(fp, "%d", &(res->score));
 
-  p = solution;
+  p = res->solution;
   for (i = 0; i < nsol; i++) {
     fscanf(fp, "%d", p);
     p++;
@@ -124,7 +124,7 @@ int argmax(int *array, int n) {
   return idx;
 }
 
-int heuristic(int *solution, struct QAP *qap, int *evaluated, int *steps) {
+void heuristic(struct QAP *qap, struct QAP_results *res) {
   int subsumsA[MAX_QAP_SIZE];
   int subsumsB[MAX_QAP_SIZE];
   for (int i = 0; i < qap->n; i++) {
@@ -145,15 +145,14 @@ int heuristic(int *solution, struct QAP *qap, int *evaluated, int *steps) {
     j = argmax(subsumsB, qap->n);
     subsumsA[i] = INT_MAX;
     subsumsB[j] = INT_MIN;
-    solution[j] = i;
+    res->solution[j] = i;
   }
-  return evaluate_solution(solution, qap);
+  res->score = evaluate_solution(res->solution, qap);
 }
 
-int localsearchgreedy(int *solution, struct QAP *qap, int *evaluated,
-                      int *steps) {
-  int i, j, besti, bestj, tmp;
-  int delta, best_score = evaluate_solution(solution, qap);
+void localsearchgreedy(struct QAP *qap, struct QAP_results *res) {
+  int i, j, besti, bestj, tmp, delta;
+  res->score = evaluate_solution(res->solution, qap);
   bool improved = true;
   int permi[qap->n], permj[qap->n];
 
@@ -167,7 +166,7 @@ int localsearchgreedy(int *solution, struct QAP *qap, int *evaluated,
 
       random_permutation(permj, qap->n);
       for (j = 0; j < qap->n; j++) {
-        delta = get_delta(solution, permi[i], permj[j], qap);
+        delta = get_delta(res->solution, permi[i], permj[j], qap);
         if (delta < 0) {
           besti = permi[i];
           bestj = permj[j];
@@ -176,24 +175,22 @@ int localsearchgreedy(int *solution, struct QAP *qap, int *evaluated,
         }
       }
     }
-    *evaluated += i + j;
+    res->evaluated += i + j;
 
     if (improved) {
-      (*steps)++;
-      best_score += delta;
+      res->steps++;
+      res->score += delta;
 
-      tmp = solution[besti];
-      solution[besti] = solution[bestj];
-      solution[bestj] = tmp;
+      tmp = res->solution[besti];
+      res->solution[besti] = res->solution[bestj];
+      res->solution[bestj] = tmp;
     }
   }
-  return best_score;
 }
 
-int localsearchsteepest(int *solution, struct QAP *qap, int *evaluated,
-                        int *steps) {
-  int i, j, besti, bestj, tmp;
-  int delta, best_delta, best_score = evaluate_solution(solution, qap);
+void localsearchsteepest(struct QAP *qap, struct QAP_results *res) {
+  int i, j, besti, bestj, tmp, delta, best_delta;
+  res->score = evaluate_solution(res->solution, qap);
   bool improved = true;
   while (improved) {
     improved = false;
@@ -201,7 +198,7 @@ int localsearchsteepest(int *solution, struct QAP *qap, int *evaluated,
 
     for (i = 0; i < qap->n; i++) {
       for (j = 0; j < qap->n; j++) {
-        delta = get_delta(solution, i, j, qap);
+        delta = get_delta(res->solution, i, j, qap);
         if (delta < best_delta) {
           best_delta = delta;
           besti = i;
@@ -209,55 +206,55 @@ int localsearchsteepest(int *solution, struct QAP *qap, int *evaluated,
         }
       }
     }
-    *evaluated += i + j;
+    res->evaluated += i + j;
     if (best_delta < 0) {
-      (*steps)++;
+      res->steps++;
       improved = true;
-      best_score += best_delta;
+      res->score += best_delta;
 
-      tmp = solution[besti];
-      solution[besti] = solution[bestj];
-      solution[bestj] = tmp;
+      tmp = res->solution[besti];
+      res->solution[besti] = res->solution[bestj];
+      res->solution[bestj] = tmp;
     }
   }
-  return best_score;
 }
 
 #define RANDOM_SEARCH_ITERATIONS 1000
 
-int randomsearch(int *solution, struct QAP *qap, int *evaluated, int *steps) {
+void randomsearch(struct QAP *qap, struct QAP_results *res) {
   int tmp_solution[MAX_QAP_SIZE];
-  int i, result, best = INT_MAX;
+  int i, score;
+  res->score = INT_MAX;
   for (i = 0; i < RANDOM_SEARCH_ITERATIONS; i++) {
     random_permutation(tmp_solution, qap->n);
-    result = evaluate_solution(tmp_solution, qap);
-    *evaluated += 1;
-    if (result < best) {
-      best = result;
-      memcpy(solution, tmp_solution, qap->n * sizeof(int));
+    score = evaluate_solution(tmp_solution, qap);
+    res->evaluated += 1;
+    if (score < res->score) {
+      memcpy(res->solution, tmp_solution, qap->n * sizeof(int));
+      res->score = score;
     }
   }
-  return best;
+  res->score = evaluate_solution(res->solution, qap);
 }
 
 #define RANDOM_WALK_ITERATIONS 1000
 
-int randomwalk(int *solution, struct QAP *qap, int *evaluated, int *steps) {
+void randomwalk(struct QAP *qap, struct QAP_results *res) {
   int tmp_solution[MAX_QAP_SIZE];
-  int i, a, b, result, best = INT_MAX;
-  int tmp;
+  int i, a, b, score, tmp;
+  res->score = INT_MAX;
   random_permutation(tmp_solution, qap->n);
   for (int i = 0; i < RANDOM_WALK_ITERATIONS; i++) {
-    result = evaluate_solution(solution, qap);
-    *evaluated += 1;
-    if (result < best) {
-      best = result;
-      memcpy(tmp_solution, solution, qap->n * sizeof(int));
+    score = evaluate_solution(res->solution, qap);
+    res->evaluated += 1;
+    if (score < res->score) {
+      memcpy(tmp_solution, res->solution, qap->n * sizeof(int));
+      res->score = score;
     }
     random_pair(&a, &b, qap->n);
-    tmp = solution[a];
-    solution[a] = solution[b];
-    solution[b] = tmp;
+    tmp = res->solution[a];
+    res->solution[a] = res->solution[b];
+    res->solution[b] = tmp;
   }
-  return best;
+  res->score = evaluate_solution(res->solution, qap);
 }
