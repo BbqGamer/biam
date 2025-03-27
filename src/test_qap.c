@@ -84,6 +84,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Optimal score: %d\n\n", res.score);
   }
 
+  fprintf(stdout, "alg,score,time,evals,steps\n");
+
   float time_greedy = execute_test(localsearchgreedy, &instance, "G");
   float time_steepest = execute_test(localsearchsteepest, &instance, "S");
   instance.timeout_ms = (time_greedy + time_steepest) / 2;
