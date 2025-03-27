@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 void read_instance(char *filename, struct QAP *qap) {
   FILE *fp = fopen(filename, "r");
@@ -35,8 +36,11 @@ void read_instance(char *filename, struct QAP *qap) {
   fclose(fp);
 }
 
-void read_solution(char *filename, int n, struct QAP_results *res) {
-  FILE *fp = fopen(filename, "r");
+int read_solution(char *filename, int n, struct QAP_results *res) {
+  FILE *fp;
+  if((fp = fopen(filename, "r")) == NULL) {
+    return 0;
+  }
   int i, *p, nsol;
 
   fscanf(fp, "%d", &nsol);
@@ -54,6 +58,7 @@ void read_solution(char *filename, int n, struct QAP_results *res) {
   }
 
   fclose(fp);
+  return 1;
 }
 
 int evaluate_solution(int *sol, struct QAP *qap) {

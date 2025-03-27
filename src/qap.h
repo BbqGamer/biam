@@ -19,7 +19,7 @@ struct QAP_results {
 };
 
 void read_instance(char *filename, struct QAP *qap);
-void read_solution(char *filename, int n, struct QAP_results *res);
+int read_solution(char *filename, int n, struct QAP_results *res);
 int evaluate_solution(int *sol, struct QAP *qap);
 int get_delta(int *sol, int i, int j, struct QAP *qap);
 

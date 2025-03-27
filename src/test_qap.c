@@ -63,9 +63,10 @@ int main(int argc, char *argv[]) {
   printf("Loaded .dat file! \n");
 
   struct QAP_results res;
-  read_solution(sln_path, instance.n, &res);
-  printf("Loaded .sln file!\n\n");
-  printf("Optimal score: %d\n\n", res.score);
+  if (read_solution(sln_path, instance.n, &res)) {
+    printf("Loaded .sln file!\n\n");
+    printf("Optimal score: %d\n\n", res.score);
+  }
 
   execute_test(randomsearch, &instance, "Random Search");
   execute_test(randomwalk, &instance, "Random Walk");
