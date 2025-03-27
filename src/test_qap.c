@@ -87,6 +87,7 @@ int main(int argc, char *argv[]) {
   float time_greedy = execute_test(localsearchgreedy, &instance, "G");
   float time_steepest = execute_test(localsearchsteepest, &instance, "S");
   instance.timeout_ms = (time_greedy + time_steepest) / 2;
+  printf("Timeout set to %f ms\n", instance.timeout_ms);
 
   execute_test(randomwalk, &instance, "RW");
   execute_test(randomsearch, &instance, "RS");
