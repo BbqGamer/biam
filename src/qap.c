@@ -159,7 +159,7 @@ void localsearchgreedy(struct QAP *qap, struct QAP_results *res) {
   int i, j, besti, bestj, tmp, delta;
   res->score = evaluate_solution(res->solution, qap);
   bool improved = true;
-  int permi[qap->n], permj[qap->n];
+  int permi[MAX_QAP_SIZE], permj[MAX_QAP_SIZE];
 
   while (improved) {
     improved = false;
