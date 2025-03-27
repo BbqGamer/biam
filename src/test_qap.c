@@ -21,6 +21,7 @@ void execute_test(evalfunc search, struct QAP *instance, char *name) {
 
     srand(_ + 2);
     random_permutation(res.solution, instance->n);
+
     search(instance, &res);
     score = evaluate_solution(res.solution, instance);
     assert(res.score == score);
@@ -61,6 +62,7 @@ int main(int argc, char *argv[]) {
   struct QAP instance;
   read_instance(dat_path, &instance);
   printf("Loaded .dat file! \n");
+  instance.timeout_ms = 10;
 
   struct QAP_results res;
   if (read_solution(sln_path, instance.n, &res)) {

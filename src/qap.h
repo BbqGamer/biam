@@ -9,6 +9,7 @@ struct QAP {
   int A[MAX_QAP_SIZE * MAX_QAP_SIZE];
   int B[MAX_QAP_SIZE * MAX_QAP_SIZE];
   int n;
+  int timeout_ms;
 };
 
 struct QAP_results {

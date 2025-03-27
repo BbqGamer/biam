@@ -224,21 +224,23 @@ void localsearchsteepest(struct QAP *qap, struct QAP_results *res) {
   }
 }
 
-#define TIMELIMIT_MS 1
-#define CHECK_INTERVAL 100
+#define TIMEOUT_CHECK_INTERVAL 100
+#define TIMEOUT_MS 10
 
 void randomsearch(struct QAP *qap, struct QAP_results *res) {
   int tmp_solution[MAX_QAP_SIZE];
   int score;
-  res->score = INT_MAX;
 
-  clock_t start = clock();
+  clock_t now, start = clock();
+  random_permutation(res->solution, qap->n);
+  res->score = evaluate_solution(res->solution, qap);
+
   int i = 0;
   while (1) {
-      if ((i % CHECK_INTERVAL) == 0) {
-          clock_t now = clock();
+      if ((i % TIMEOUT_CHECK_INTERVAL) == 0) {
+          now = clock();
           double elapsed_ms = ((double)(now - start)) * 1000.0 / CLOCKS_PER_SEC;
-          if (elapsed_ms > TIMELIMIT_MS)
+          if (elapsed_ms > qap->timeout_ms)
               break;
       }
 
@@ -256,16 +258,17 @@ void randomsearch(struct QAP *qap, struct QAP_results *res) {
 void randomwalk(struct QAP *qap, struct QAP_results *res) {
     int tmp_solution[MAX_QAP_SIZE];
     int a, b, score, tmp;
-    res->score = INT_MAX;
-    random_permutation(tmp_solution, qap->n);
 
-    clock_t start = clock();
+    clock_t now, start = clock();
+    random_permutation(tmp_solution, qap->n);
+    res->score = evaluate_solution(tmp_solution, qap);
+
     int i = 0;
     while (1) {
-        if ((i % CHECK_INTERVAL) == 0) {
-            clock_t now = clock();
+        if ((i % TIMEOUT_CHECK_INTERVAL) == 0) {
+            now = clock();
             double elapsed_ms = ((double)(now - start)) * 1000.0 / CLOCKS_PER_SEC;
-            if (elapsed_ms > TIMELIMIT_MS)
+            if (elapsed_ms > TIMEOUT_MS)
                 break;
         }
 
