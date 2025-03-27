@@ -6,7 +6,7 @@
 #include <string.h>
 typedef void (*evalfunc)(struct QAP *, struct QAP_results *);
 
-#define K 10
+#define K 300
 
 float execute_test(evalfunc search, struct QAP *instance, char *name) {
   int sum = 0;
@@ -17,6 +17,7 @@ float execute_test(evalfunc search, struct QAP *instance, char *name) {
   clock_t start, end;
 
   struct QAP_results res;
+  int start_solution[MAX_QAP_SIZE];
 
   fprintf(stderr, "%s: ", name);
   for (int _ = 0; _ < K; _++) {
@@ -25,6 +26,7 @@ float execute_test(evalfunc search, struct QAP *instance, char *name) {
 
     srand(_ + 2);
     random_permutation(res.solution, instance->n);
+    memcpy(start_solution, res.solution, instance->n * sizeof(int));
 
     start = clock();
     search(instance, &res);
@@ -36,7 +38,15 @@ float execute_test(evalfunc search, struct QAP *instance, char *name) {
     cur_time = (float)(end - start) / CLOCKS_PER_SEC * 1000;
     sum_time += cur_time;
 
-    fprintf(stdout, "%s,%d,%.3f,%d,%d\n", name, score, cur_time, res.evaluated, res.steps);
+    fprintf(stdout, "%s,%d,%.3f,%d,%d,", name, score, cur_time, res.evaluated, res.steps);
+    for(int i = 0; i < instance->n - 1; i++) {
+      printf("%d ", start_solution[i]);
+    }
+    printf("%d,", start_solution[instance->n - 1]);
+    for(int i = 0; i < instance->n - 1; i++) {
+      printf("%d ", res.solution[i]);
+    }
+    printf("%d\n", res.solution[instance->n - 1]);
     
     sum += score;
     sum_evaluated += res.evaluated;
@@ -84,7 +94,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Optimal score: %d\n\n", res.score);
   }
 
-  fprintf(stdout, "alg,score,time,evals,steps\n");
+  fprintf(stdout, "alg,score,time,evals,steps,solution,starting\n");
 
   float time_greedy = execute_test(localsearchgreedy, &instance, "G");
   float time_steepest = execute_test(localsearchsteepest, &instance, "S");
