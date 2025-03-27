@@ -1,14 +1,14 @@
 #include "qap.h"
 #include "random.h"
 #include <assert.h>
+#include <bits/getopt_core.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
 typedef void (*evalfunc)(struct QAP *, struct QAP_results *);
 
-#define K 300
-
-float execute_test(evalfunc search, struct QAP *instance, char *name) {
+float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
   int sum = 0;
   int max = INT_MIN, min = INT_MAX;
   int score, sum_evaluated = 0;
@@ -19,7 +19,6 @@ float execute_test(evalfunc search, struct QAP *instance, char *name) {
   struct QAP_results res;
   int start_solution[MAX_QAP_SIZE];
 
-  fprintf(stderr, "%s: ", name);
   for (int _ = 0; _ < K; _++) {
     res.evaluated = 0;
     res.steps = 0;
@@ -64,12 +63,26 @@ float execute_test(evalfunc search, struct QAP *instance, char *name) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    fprintf(stderr, "Usage %s [input file].dat", argv[0]);
-    exit(1);
-  }
+  bool just_ls = false;
+  int K = 0;
+  int opt;
 
-  char *dat_path = argv[1];
+  while ((opt = getopt(argc, argv, "lK:")) != -1) {
+        switch (opt) {
+            case 'l':
+                just_ls = true;
+                break;
+            case 'K':
+                // Convert the string argument to an integer
+                K= atoi(optarg);
+                break;
+            default:
+                fprintf(stderr, "Usage: %s [-l] [-K integer]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
+  char *dat_path = argv[optind];
   char sln_path[1024];
 
   strncpy(sln_path, dat_path, sizeof(sln_path) - 1);
@@ -96,12 +109,15 @@ int main(int argc, char *argv[]) {
 
   fprintf(stdout, "alg,score,time,evals,steps,solution,starting\n");
 
-  float time_greedy = execute_test(localsearchgreedy, &instance, "G");
-  float time_steepest = execute_test(localsearchsteepest, &instance, "S");
-  instance.timeout_ms = (time_greedy + time_steepest) / 2;
-  fprintf(stderr, "Timeout set to %.4f ms\n", instance.timeout_ms);
+  float time_greedy = execute_test(localsearchgreedy, &instance, "G", K);
+  float time_steepest = execute_test(localsearchsteepest, &instance, "S", K);
 
-  execute_test(randomwalk, &instance, "RW");
-  execute_test(randomsearch, &instance, "RS");
-  execute_test(heuristic, &instance, "H");
+  if(!just_ls) {
+    instance.timeout_ms = (time_greedy + time_steepest) / 2;
+    fprintf(stderr, "Timeout set to %.4f ms\n", instance.timeout_ms);
+
+    execute_test(randomwalk, &instance, "RW", K);
+    execute_test(randomsearch, &instance, "RS", K);
+    execute_test(heuristic, &instance, "H", K);
+  }
 }
