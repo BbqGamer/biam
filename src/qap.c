@@ -224,40 +224,61 @@ void localsearchsteepest(struct QAP *qap, struct QAP_results *res) {
   }
 }
 
-#define RANDOM_SEARCH_ITERATIONS 1000
+#define TIMELIMIT_MS 1
+#define CHECK_INTERVAL 100
 
 void randomsearch(struct QAP *qap, struct QAP_results *res) {
   int tmp_solution[MAX_QAP_SIZE];
-  int i, score;
+  int score;
   res->score = INT_MAX;
-  for (i = 0; i < RANDOM_SEARCH_ITERATIONS; i++) {
-    random_permutation(tmp_solution, qap->n);
-    score = evaluate_solution(tmp_solution, qap);
-    res->evaluated += 1;
-    if (score < res->score) {
-      memcpy(res->solution, tmp_solution, qap->n * sizeof(int));
-      res->score = score;
-    }
+
+  clock_t start = clock();
+  int i = 0;
+  while (1) {
+      if ((i % CHECK_INTERVAL) == 0) {
+          clock_t now = clock();
+          double elapsed_ms = ((double)(now - start)) * 1000.0 / CLOCKS_PER_SEC;
+          if (elapsed_ms > TIMELIMIT_MS)
+              break;
+      }
+
+      random_permutation(tmp_solution, qap->n);
+      score = evaluate_solution(tmp_solution, qap);
+      res->evaluated += 1;
+      if (score < res->score) {
+          memcpy(res->solution, tmp_solution, qap->n * sizeof(int));
+          res->score = score;
+      }
+      i++;
   }
 }
 
-#define RANDOM_WALK_ITERATIONS 1000
-
 void randomwalk(struct QAP *qap, struct QAP_results *res) {
-  int tmp_solution[MAX_QAP_SIZE];
-  int a, b, score, tmp;
-  res->score = INT_MAX;
-  random_permutation(tmp_solution, qap->n);
-  for (int i = 0; i < RANDOM_WALK_ITERATIONS; i++) {
-    score = evaluate_solution(tmp_solution, qap);
-    res->evaluated += 1;
-    if (score < res->score) {
-      memcpy(res->solution, tmp_solution, qap->n * sizeof(int));
-      res->score = score;
+    int tmp_solution[MAX_QAP_SIZE];
+    int a, b, score, tmp;
+    res->score = INT_MAX;
+    random_permutation(tmp_solution, qap->n);
+
+    clock_t start = clock();
+    int i = 0;
+    while (1) {
+        if ((i % CHECK_INTERVAL) == 0) {
+            clock_t now = clock();
+            double elapsed_ms = ((double)(now - start)) * 1000.0 / CLOCKS_PER_SEC;
+            if (elapsed_ms > TIMELIMIT_MS)
+                break;
+        }
+
+        score = evaluate_solution(tmp_solution, qap);
+        res->evaluated += 1;
+        if (score < res->score) {
+            memcpy(res->solution, tmp_solution, qap->n * sizeof(int));
+            res->score = score;
+        }
+        random_pair(&a, &b, qap->n);
+        tmp = tmp_solution[a];
+        tmp_solution[a] = tmp_solution[b];
+        tmp_solution[b] = tmp;
+        i++;
     }
-    random_pair(&a, &b, qap->n);
-    tmp = tmp_solution[a];
-    tmp_solution[a] = tmp_solution[b];
-    tmp_solution[b] = tmp;
-  }
 }
