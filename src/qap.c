@@ -239,27 +239,25 @@ void randomsearch(struct QAP *qap, struct QAP_results *res) {
       res->score = score;
     }
   }
-  res->score = evaluate_solution(res->solution, qap);
 }
 
 #define RANDOM_WALK_ITERATIONS 1000
 
 void randomwalk(struct QAP *qap, struct QAP_results *res) {
   int tmp_solution[MAX_QAP_SIZE];
-  int i, a, b, score, tmp;
+  int a, b, score, tmp;
   res->score = INT_MAX;
   random_permutation(tmp_solution, qap->n);
   for (int i = 0; i < RANDOM_WALK_ITERATIONS; i++) {
-    score = evaluate_solution(res->solution, qap);
+    score = evaluate_solution(tmp_solution, qap);
     res->evaluated += 1;
     if (score < res->score) {
-      memcpy(tmp_solution, res->solution, qap->n * sizeof(int));
+      memcpy(res->solution, tmp_solution, qap->n * sizeof(int));
       res->score = score;
     }
     random_pair(&a, &b, qap->n);
-    tmp = res->solution[a];
-    res->solution[a] = res->solution[b];
-    res->solution[b] = tmp;
+    tmp = tmp_solution[a];
+    tmp_solution[a] = tmp_solution[b];
+    tmp_solution[b] = tmp;
   }
-  res->score = evaluate_solution(res->solution, qap);
 }
