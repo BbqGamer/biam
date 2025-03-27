@@ -8,11 +8,12 @@ typedef void (*evalfunc)(struct QAP *, struct QAP_results *);
 
 #define K 10
 
-void execute_test(evalfunc search, struct QAP *instance, char *name) {
+float execute_test(evalfunc search, struct QAP *instance, char *name) {
   int sum = 0;
   int max = INT_MIN, min = INT_MAX;
   int score, sum_evaluated = 0;
   int sum_steps = 0;
+  float cur_time, sum_time = 0;
   clock_t start, end;
 
   struct QAP_results res;
@@ -32,9 +33,10 @@ void execute_test(evalfunc search, struct QAP *instance, char *name) {
     score = evaluate_solution(res.solution, instance);
     assert(res.score == score);
 
-    fprintf(stdout, "%s,%d,%.3f,%d,%d\n", name, score,
-      (float)(end - start) / CLOCKS_PER_SEC * 1000, res.evaluated, res.steps
-    );
+    cur_time = (float)(end - start) / CLOCKS_PER_SEC * 1000;
+    sum_time += cur_time;
+
+    fprintf(stdout, "%s,%d,%.3f,%d,%d\n", name, score, cur_time, res.evaluated, res.steps);
     
     sum += score;
     sum_evaluated += res.evaluated;
@@ -46,8 +48,9 @@ void execute_test(evalfunc search, struct QAP *instance, char *name) {
     }
   }
   fprintf(stderr, "%.2f (%d - %d)\n", (float)sum / K, min, max);
-  fprintf(stderr, "avg evals: %.2f, avg steps: %.2f \n\n", (float)sum_evaluated / K,
-         (float)sum_steps / K);
+  fprintf(stderr, "avg time: %.3f ms, avg evals: %.2f, avg steps: %.2f \n\n",
+     sum_time / K, (float)sum_evaluated / K, (float)sum_steps / K);
+  return sum_time / K;
 }
 
 int main(int argc, char *argv[]) {
@@ -73,7 +76,7 @@ int main(int argc, char *argv[]) {
   struct QAP instance;
   read_instance(dat_path, &instance);
   fprintf(stderr, "Loaded .dat file! \n");
-  instance.timeout_ms = 10;
+  instance.timeout_ms = 1000;
 
   struct QAP_results res;
   if (read_solution(sln_path, instance.n, &res)) {
@@ -81,9 +84,11 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Optimal score: %d\n\n", res.score);
   }
 
-  execute_test(randomsearch, &instance, "RS");
+  float time_greedy = execute_test(localsearchgreedy, &instance, "G");
+  float time_steepest = execute_test(localsearchsteepest, &instance, "S");
+  instance.timeout_ms = (time_greedy + time_steepest) / 2;
+
   execute_test(randomwalk, &instance, "RW");
+  execute_test(randomsearch, &instance, "RS");
   execute_test(heuristic, &instance, "H");
-  execute_test(localsearchgreedy, &instance, "G");
-  execute_test(localsearchsteepest, &instance, "S");
 }
