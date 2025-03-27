@@ -224,7 +224,7 @@ void localsearchsteepest(struct QAP *qap, struct QAP_results *res) {
   }
 }
 
-#define TIMEOUT_CHECK_INTERVAL 100
+#define TIMEOUT_CHECK_INTERVAL 50
 
 void randomsearch(struct QAP *qap, struct QAP_results *res) {
   int tmp_solution[MAX_QAP_SIZE];
