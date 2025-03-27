@@ -1,5 +1,6 @@
 BUILD_DIR := build
-LDLAGS  = -lm
+LDLAGS := -lm
+CFLAGS := -o3 -Wall -Wextra -pedantic -Iinclude -g
 TEST_RANDOM := $(BUILD_DIR)/test_random
 BENCHMARK := $(BUILD_DIR)/benchmark
 TEST_QAP := $(BUILD_DIR)/test_qap
