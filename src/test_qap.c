@@ -18,6 +18,7 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
 
   struct QAP_results res;
   int start_solution[MAX_QAP_SIZE];
+  fprintf(stderr, "Running %s...\n", name);
 
   for (int _ = 0; _ < K; _++) {
     res.evaluated = 0;
