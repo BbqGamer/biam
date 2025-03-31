@@ -106,25 +106,31 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
 }
 
 int argmin(int *array, int n) {
+  // finds the index of the minimum element in array
+  // resolves ties randomly
   int idx = 0;
   int result = INT_MAX;
   for (int i = 0; i < n; i++) {
-    if (array[i] < result) {
-      result = array[i];
-      idx = i;
+    if (array[i] > result || (array[i] == result && rand() % 2 == 0)) {
+      continue;
     }
+    result = array[i];
+    idx = i;
   }
   return idx;
 }
 
 int argmax(int *array, int n) {
+  // finds the index of the maximum element in array
+  // resolves ties randomly
   int idx = 0;
   int result = INT_MIN;
   for (int i = 0; i < n; i++) {
-    if (array[i] > result) {
-      result = array[i];
-      idx = i;
+    if (array[i] < result || (array[i] == result && rand() % 2 == 0)) {
+      continue;
     }
+    result = array[i];
+    idx = i;
   }
   return idx;
 }
