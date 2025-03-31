@@ -52,7 +52,8 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
     sum_steps += res.steps;
     if (score > max) {
       max = score;
-    } else if (score < min) {
+    }
+    if (score < min) {
       min = score;
     }
   }
