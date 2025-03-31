@@ -64,7 +64,7 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
 
 int main(int argc, char *argv[]) {
   bool just_ls = false;
-  int K = 0;
+  int K = 10;
   int opt;
 
   while ((opt = getopt(argc, argv, "lK:")) != -1) {
