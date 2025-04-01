@@ -1,0 +1,16 @@
+results/tai256c.csv filter=lfs diff=lfs merge=lfs -text
+results/bur26a.csv filter=lfs diff=lfs merge=lfs -text
+results/els19_ls.csv filter=lfs diff=lfs merge=lfs -text
+results/esc128_ls.csv filter=lfs diff=lfs merge=lfs -text
+results/had20_ls.csv filter=lfs diff=lfs merge=lfs -text
+results/wil100_ls.csv filter=lfs diff=lfs merge=lfs -text
+results/bur26a_ls.csv filter=lfs diff=lfs merge=lfs -text
+results/chr25a.csv filter=lfs diff=lfs merge=lfs -text
+results/had20.csv filter=lfs diff=lfs merge=lfs -text
+results/tai256c_ls.csv filter=lfs diff=lfs merge=lfs -text
+results/wil100.csv filter=lfs diff=lfs merge=lfs -text
+results/els19.csv filter=lfs diff=lfs merge=lfs -text
+results/esc128.csv filter=lfs diff=lfs merge=lfs -text
+results/lipa90b.csv filter=lfs diff=lfs merge=lfs -text
+results/lipa90b_ls.csv filter=lfs diff=lfs merge=lfs -text
+results/chr25a_ls.csv filter=lfs diff=lfs merge=lfs -text
