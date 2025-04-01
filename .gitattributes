@@ -14,3 +14,11 @@ results/esc128.csv filter=lfs diff=lfs merge=lfs -text
 results/lipa90b.csv filter=lfs diff=lfs merge=lfs -text
 results/lipa90b_ls.csv filter=lfs diff=lfs merge=lfs -text
 results/chr25a_ls.csv filter=lfs diff=lfs merge=lfs -text
+plots/tai256c.png filter=lfs diff=lfs merge=lfs -text
+plots/wil100.png filter=lfs diff=lfs merge=lfs -text
+plots/bur26a.png filter=lfs diff=lfs merge=lfs -text
+plots/chr25a.png filter=lfs diff=lfs merge=lfs -text
+plots/els19.png filter=lfs diff=lfs merge=lfs -text
+plots/esc128.png filter=lfs diff=lfs merge=lfs -text
+plots/had20.png filter=lfs diff=lfs merge=lfs -text
+plots/lipa90b.png filter=lfs diff=lfs merge=lfs -text
