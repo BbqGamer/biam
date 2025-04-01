@@ -1,6 +1,7 @@
 import pathlib
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -43,3 +44,20 @@ if __name__ == "__main__":
         fig.suptitle(problem)
         plt.tight_layout()
         plt.savefig(f"plots/{problem}.png")
+
+    for file in pathlib.Path("results").glob("*ls.csv"):
+        print(file)
+        problem = file.name.split(".")[0][:-3]
+        df = pd.read_csv(file)
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.set_ylabel("Best score")
+        ax.set_xlabel("Iteration")
+        sns.lineplot(
+            np.minimum.accumulate(df[df["alg"] == "S"]["score"].values), label="S"
+        )
+        sns.lineplot(
+            np.minimum.accumulate(df[df["alg"] == "G"]["score"].values), label="G"
+        )
+        plt.title(problem)
+        plt.savefig(f"plots/{problem}_multistart_ls.png")
