@@ -4,8 +4,9 @@ CFLAGS := -o3 -Wall -Wextra -pedantic -Iinclude -g
 TEST_RANDOM := $(BUILD_DIR)/test_random
 BENCHMARK := $(BUILD_DIR)/benchmark
 TEST_QAP := $(BUILD_DIR)/test_qap
+REPORT := $(BUILD_DIR)/report.pdf
 
-all: $(TEST_RANDOM) $(BENCHMARK) $(TEST_QAP)
+all: $(TEST_RANDOM) $(BENCHMARK) $(TEST_QAP) $(REPORT)
 
 $(TEST_RANDOM): src/random.c src/test_random.c | $(BUILD_DIR)
 	gcc $(CFLAGS) $^ -o $@
@@ -18,3 +19,6 @@ $(TEST_QAP): src/test_qap.c src/qap.c src/random.c| $(BUILD_DIR)
 
 $(BUILD_DIR):
 	mkdir $(BUILD_DIR)
+
+$(REPORT): report/report.tex report/_settings.tex report/_title.tex | $(BUILD_DIR)
+	cd report && pdflatex -output-directory=../build report.tex
