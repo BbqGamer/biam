@@ -5,6 +5,21 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+
+def cum_mean(arr):
+    cum_sum = np.cumsum(arr, axis=0)
+    for i in range(cum_sum.shape[0]):
+        if i == 0:
+            continue
+        cum_sum[i] = cum_sum[i] / (i + 1)
+    return cum_sum
+
+
+def get_list(s):
+    """Convert a string of numbers into a list of integers."""
+    return [int(x) for x in s.split()]
+
+
 if __name__ == "__main__":
     for file in pathlib.Path("results").glob("*[!ls].csv"):
         problem = file.name.split(".")[0]
@@ -46,7 +61,12 @@ if __name__ == "__main__":
         plt.savefig(f"plots/{problem}.png")
 
     for file in pathlib.Path("results").glob("*ls.csv"):
-        print(file)
+        instance = file.name.split(".")[0][:-3]
+        with open(f"data/qaplib/{instance}.sln") as f:
+            lines = f.readlines()
+            best_score = float(lines[0].split()[1])
+            best_sol = get_list(lines[1].strip())
+
         problem = file.name.split(".")[0][:-3]
         df = pd.read_csv(file)
         fig = plt.figure()
@@ -56,8 +76,13 @@ if __name__ == "__main__":
         sns.lineplot(
             np.minimum.accumulate(df[df["alg"] == "S"]["score"].values), label="S"
         )
+        sns.lineplot(cum_mean(df[df["alg"] == "S"]["score"].values), label="S_avg")
+
         sns.lineplot(
             np.minimum.accumulate(df[df["alg"] == "G"]["score"].values), label="G"
         )
+        sns.lineplot(cum_mean(df[df["alg"] == "G"]["score"].values), label="G_avg")
+        ax.axhline(y=best_score, color="r", linestyle="--", label="best")
+
         plt.title(problem)
         plt.savefig(f"plots/{problem}_multistart_ls.png")
