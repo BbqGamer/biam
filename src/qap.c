@@ -72,37 +72,65 @@ int evaluate_solution(int *sol, struct QAP *qap) {
 }
 
 int get_delta(int *sol, int i, int j, struct QAP *qap) {
-  /*
-  delta: = ( a_{jj} - a_{ii}) ( b_{pipi} - b_{pjpj})
-  + ( a_{ji} - a_{ij}) ( b_{pipj} - b_{pjpi})
-  + SUM k \in {N\i,j}(
-    ( a_{jk} - a_{ik}) ( b_{pipk} - b_{pjpk})
-    + ( a_{kj} - a_{ki}) ( b_{pkpi} - b_{pkpj})
-)
+    /*
+      delta = ( A[jj] - A[ii]) * ( B[p_i p_i] - B[p_j p_j])
+             + ( A[ji] - A[ij]) * ( B[p_i p_j] - B[p_j p_i])
+             + SUM_{k != i, j} [
+                 ( A[jk] - A[ik]) * ( B[p_i p_k] - B[p_j p_k])
+               + ( A[kj] - A[ki]) * ( B[p_k p_i] - B[p_k p_j])
+             ]
+    */
 
-*/
-  int delta;
-  delta =
-      (qap->A[j * qap->n + j] - qap->A[i * qap->n + i]) *
-          (qap->B[sol[i] * qap->n + sol[i]] -
-           qap->B[sol[j] * qap->n + sol[j]]) +
-      (qap->A[j * qap->n + i] - qap->A[i * qap->n + j]) *
-          (qap->B[sol[i] * qap->n + sol[j]] - qap->B[sol[j] * qap->n + sol[i]]);
-  // SUM
-  int sum = 0;
-  for (int k = 0; k < qap->n; k++) {
-    if ((k == i) || (k == j)) {
-      continue;
+    int n   = qap->n;
+    int *A  = qap->A; 
+    int *B  = qap->B;
+
+    int pi  = sol[i];
+    int pj  = sol[j];
+
+    // Pointers to A’s rows for i and j
+    int *Ai = A + i * n;  // Row i in A
+    int *Aj = A + j * n;  // Row j in A
+
+    // Pointers to B’s rows for pi and pj
+    int *Bpi = B + pi * n; // Row p_i in B
+    int *Bpj = B + pj * n; // Row p_j in B
+
+    // Load up reused values (avoid re-checking Ai[i], Bpi[pi], etc.)
+    int Aii = Ai[i]; 
+    int Ajj = Aj[j];
+    int Aij = Ai[j];
+    int Aji = Aj[i];
+
+    int Bpi_pi = Bpi[pi];
+    int Bpj_pj = Bpj[pj];
+    int Bpi_pj = Bpi[pj];
+    int Bpj_pi = Bpj[pi];
+
+    // First part of delta
+    int delta = (Ajj - Aii) * (Bpi_pi - Bpj_pj)
+              + (Aji - Aij) * (Bpi_pj - Bpj_pi);
+
+    // Accumulate sum for k != i, j
+    int *Aki = A + i;
+    int *Akj = A + j;
+    int sum = 0;
+    for (int k = 0; k < n; k++) {
+        int *Bsk = B + sol[k] * n; 
+
+        if (k != i  && k != j) {
+          sum += (*Aj - *Ai) * (Bpi[sol[k]] - Bpj[sol[k]])
+              + (*Akj - *Aki) * (Bsk[pi] - Bsk[pj]);
+        }
+
+        Aki += n;
+        Akj += n;
+        Aj += 1;
+        Ai += 1;
     }
-    sum += (qap->A[j * qap->n + k] - qap->A[i * qap->n + k]) *
-               (qap->B[sol[i] * qap->n + sol[k]] -
-                qap->B[sol[j] * qap->n + sol[k]]) +
-           (qap->A[k * qap->n + j] - qap->A[k * qap->n + i]) *
-               (qap->B[sol[k] * qap->n + sol[i]] -
-                qap->B[sol[k] * qap->n + sol[j]]);
-  }
-  delta += sum;
-  return delta;
+
+    delta += sum;
+    return delta;
 }
 
 int argmin(int *array, int n) {
