@@ -162,7 +162,7 @@ void heuristic(struct QAP *qap, struct QAP_results *res) {
 }
 
 void localsearchgreedy(struct QAP *qap, struct QAP_results *res) {
-  int i, j, besti, bestj, tmp, delta;
+  int i, j = 0, besti, bestj, tmp, delta;
   res->score = evaluate_solution(res->solution, qap);
   bool improved = true;
   int permi[MAX_QAP_SIZE], permj[MAX_QAP_SIZE];
@@ -200,7 +200,7 @@ void localsearchgreedy(struct QAP *qap, struct QAP_results *res) {
 }
 
 void localsearchsteepest(struct QAP *qap, struct QAP_results *res) {
-  int i, j, besti, bestj, tmp, delta, best_delta;
+  int i, j = 0, besti, bestj, tmp, delta, best_delta;
   res->score = evaluate_solution(res->solution, qap);
   bool improved = true;
   while (improved) {
