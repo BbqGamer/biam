@@ -9,7 +9,7 @@
 typedef void (*evalfunc)(struct QAP *, struct QAP_results *);
 
 float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
-  int sum = 0;
+  long long sum = 0;
   int max = INT_MIN, min = INT_MAX;
   int start_score, score, sum_evaluated = 0;
   int sum_steps = 0;
@@ -43,11 +43,12 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
     for(int i = 0; i < instance->n - 1; i++) {
       printf("%d ", start_solution[i] + 1);
     }
-    printf("%d,", start_solution[instance->n - 1]);
+    printf("%d,", start_solution[instance->n - 1] + 1);
+
     for(int i = 0; i < instance->n - 1; i++) {
       printf("%d ", res.solution[i] + 1);
     }
-    printf("%d\n", res.solution[instance->n - 1]);
+    printf("%d\n", res.solution[instance->n - 1] + 1);
     
     sum += score;
     sum_evaluated += res.evaluated;
@@ -115,7 +116,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Optimal score: %d (sanity check: %d)\n\n", res.score, eval_score);
   }
 
-  fprintf(stdout, "alg,start_score,score,time,evals,steps,solution,starting\n");
+  fprintf(stdout, "alg,start_score,score,time,evals,steps,starting,solution\n");
 
   float time_greedy = execute_test(localsearchgreedy, &instance, "G", K);
   float time_steepest = execute_test(localsearchsteepest, &instance, "S", K);
