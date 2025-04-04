@@ -11,7 +11,6 @@ instances = [
     "tai256c",
     "wil100",
 ]
-instances_msls = ["tai256c", "lipa90b"]
 
 
 def benchmark(instance):
@@ -27,6 +26,6 @@ def benchmark_ls(instance):
 if __name__ == "__main__":
     with multiprocessing.Pool(processes=16) as pool:
         pool.map(benchmark, instances)
-        pool.map(benchmark_ls, instances_msls)
+        pool.map(benchmark_ls, instances)
 
     print("All instances have been processed.")
