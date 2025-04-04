@@ -54,6 +54,7 @@ int read_solution(char *filename, int n, struct QAP_results *res) {
   p = res->solution;
   for (i = 0; i < nsol; i++) {
     fscanf(fp, "%d", p);
+    (*p) -= 1;
     p++;
   }
 

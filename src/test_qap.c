@@ -41,11 +41,11 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
 
     fprintf(stdout, "%s,%d,%d,%.3f,%d,%d,", name, start_score, score, cur_time, res.evaluated, res.steps);
     for(int i = 0; i < instance->n - 1; i++) {
-      printf("%d ", start_solution[i]);
+      printf("%d ", start_solution[i] + 1);
     }
     printf("%d,", start_solution[instance->n - 1]);
     for(int i = 0; i < instance->n - 1; i++) {
-      printf("%d ", res.solution[i]);
+      printf("%d ", res.solution[i] + 1);
     }
     printf("%d\n", res.solution[instance->n - 1]);
     
@@ -107,7 +107,12 @@ int main(int argc, char *argv[]) {
   struct QAP_results res;
   if (read_solution(sln_path, instance.n, &res)) {
     fprintf(stderr, "Loaded .sln file!\n\n");
-    fprintf(stderr, "Optimal score: %d\n\n", res.score);
+    int eval_score = evaluate_solution(res.solution, &instance);
+    if (eval_score != res.score) {
+      fprintf(stderr, "Eval_score != res.score (%d != %d)", eval_score, res.score);
+      return -1;
+    }
+    fprintf(stderr, "Optimal score: %d (sanity check: %d)\n\n", res.score, eval_score);
   }
 
   fprintf(stdout, "alg,start_score,score,time,evals,steps,solution,starting\n");
