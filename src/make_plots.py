@@ -71,18 +71,34 @@ if __name__ == "__main__":
         df = pd.read_csv(file)
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        ax.set_ylabel("Best score")
-        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Score")
+        ax.set_xlabel("Repetition")
         sns.lineplot(
-            np.minimum.accumulate(df[df["alg"] == "S"]["score"].values), label="S"
+            np.minimum.accumulate(df[df["alg"] == "S"]["score"].values.tolist()),
+            label="best S",
+            color="orange",
+            linewidth=2,
         )
-        sns.lineplot(cum_mean(df[df["alg"] == "S"]["score"].values), label="S_avg")
+        sns.lineplot(
+            cum_mean(df[df["alg"] == "S"]["score"].values),
+            label="average S",
+            color="orange",
+            linestyle="--",
+        )
 
         sns.lineplot(
-            np.minimum.accumulate(df[df["alg"] == "G"]["score"].values), label="G"
+            np.minimum.accumulate(df[df["alg"] == "G"]["score"].values.tolist()),
+            label="best G",
+            color="blue",
+            linewidth=2,
         )
-        sns.lineplot(cum_mean(df[df["alg"] == "G"]["score"].values), label="G_avg")
-        ax.axhline(y=best_score, color="r", linestyle="--", label="best")
+        sns.lineplot(
+            cum_mean(df[df["alg"] == "G"]["score"].values),
+            label="average G",
+            color="blue",
+            linestyle="--",
+        )
+        ax.axhline(y=best_score, color="r", linestyle="--", label="global optimum")
 
         plt.title(problem)
         plt.savefig(f"plots/{problem}_multistart_ls.png")
