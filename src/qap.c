@@ -71,62 +71,81 @@ int evaluate_solution(int *sol, struct QAP *qap) {
   return result;
 }
 
-int get_delta(int *sol, int i, int j, struct QAP *qap) {
+int get_delta(int *sol, int i, int j, struct QAP *qap)
+{
     /*
-      delta = ( A[jj] - A[ii]) * ( B[p_i p_i] - B[p_j p_j])
-             + ( A[ji] - A[ij]) * ( B[p_i p_j] - B[p_j p_i])
-             + SUM_{k != i, j} [
-                 ( A[jk] - A[ik]) * ( B[p_i p_k] - B[p_j p_k])
-               + ( A[kj] - A[ki]) * ( B[p_k p_i] - B[p_k p_j])
-             ]
+      delta = ( A[jj] - A[ii] ) * ( B[p_i p_i] - B[p_j p_j] )
+            + ( A[ji] - A[ij] ) * ( B[p_i p_j] - B[p_j p_i] )
+            + SUM_{k != i, j} [
+                ( A[jk] - A[ik] ) * ( B[p_i p_k] - B[p_j p_k] )
+              + ( A[kj] - A[ki] ) * ( B[p_k p_i] - B[p_k p_j] )
+            ]
     */
 
-    int n   = qap->n;
-    int *A  = qap->A; 
-    int *B  = qap->B;
+    int n = qap->n;
+    int *A = qap->A;
+    int *B = qap->B;
 
-    int pi  = sol[i];
-    int pj  = sol[j];
+    // Current assignments for locations i and j
+    int pi = sol[i];
+    int pj = sol[j];
 
-    // Pointers to A’s rows for i and j
-    int *Ai = A + i * n;  // Row i in A
-    int *Aj = A + j * n;  // Row j in A
+    // Row pointers in A for row i, row j
+    int *Ai = A + i * n;  
+    int *Aj = A + j * n;  
 
-    // Pointers to B’s rows for pi and pj
-    int *Bpi = B + pi * n; // Row p_i in B
-    int *Bpj = B + pj * n; // Row p_j in B
+    // Row pointers in B for row p_i, row p_j
+    int *Bpi = B + pi * n;
+    int *Bpj = B + pj * n;
 
-    // Load up reused values (avoid re-checking Ai[i], Bpi[pi], etc.)
-    int Aii = Ai[i]; 
-    int Ajj = Aj[j];
-    int Aij = Ai[j];
-    int Aji = Aj[i];
+    // Cache a few repeated accesses
+    int Aii = Ai[i], Ajj = Aj[j];
+    int Aij = Ai[j], Aji = Aj[i];
 
-    int Bpi_pi = Bpi[pi];
-    int Bpj_pj = Bpj[pj];
-    int Bpi_pj = Bpi[pj];
-    int Bpj_pi = Bpj[pi];
+    int Bpi_pi = Bpi[pi], Bpj_pj = Bpj[pj];
+    int Bpi_pj = Bpi[pj], Bpj_pi = Bpj[pi];
 
-    // First part of delta
+    // First (constant) part of delta
     int delta = (Ajj - Aii) * (Bpi_pi - Bpj_pj)
               + (Aji - Aij) * (Bpi_pj - Bpj_pi);
 
-    // Accumulate sum for k != i, j
-    int *Aki = A + i;
-    int *Akj = A + j;
+    // We'll sum over k != i, j
     int sum = 0;
-    for (int k = 0; k < n; k++) {
-        int *Bsk = B + sol[k] * n; 
 
-        if (k != i  && k != j) {
-          sum += (*Aj - *Ai) * (Bpi[sol[k]] - Bpj[sol[k]])
-              + (*Akj - *Aki) * (Bsk[pi] - Bsk[pj]);
+    // For convenient pointer arithmetic:
+    //  - Ai_ptr, Aj_ptr will traverse row i and j in A for columns k=0..n-1
+    //  - Aki_ptr, Akj_ptr will traverse column i and j in A for rows k=0..n-1
+    int *Ai_ptr  = Ai;         // points to A[i*n + k] as k increments
+    int *Aj_ptr  = Aj;         // points to A[j*n + k]
+    int *Aki_ptr = A + i;      // points to A[k*n + i]
+    int *Akj_ptr = A + j;      // points to A[k*n + j]
+
+    // Loop over all k, skip i and j
+    for (int k = 0; k < n; k++)
+    {
+        if (k != i && k != j)
+        {
+            // This is row p_k in B
+            int s_k  = sol[k];
+            int *Bsk = B + s_k * n;
+
+            // Gather B–related differences in local variables
+            int b_diff1 = Bpi[s_k] - Bpj[s_k];     // (B[p_i p_k] - B[p_j p_k])
+            int b_diff2 = Bsk[pi] - Bsk[pj];       // (B[p_k p_i] - B[p_k p_j])
+
+            // Gather A–related differences
+            int a_diff1 = (Aj_ptr[0] - Ai_ptr[0]);  // (A[j,k] - A[i,k])
+            int a_diff2 = (Akj_ptr[0] - Aki_ptr[0]); // (A[k,j] - A[k,i])
+
+            sum += a_diff1 * b_diff1 + a_diff2 * b_diff2;
         }
 
-        Aki += n;
-        Akj += n;
-        Aj += 1;
-        Ai += 1;
+        // Advance all pointers to move from column k to column k+1 in Ai,Aj
+        // and from row k to row k+1 for Aki, Akj
+        Ai_ptr++;
+        Aj_ptr++;
+        Aki_ptr += n;
+        Akj_ptr += n;
     }
 
     delta += sum;
