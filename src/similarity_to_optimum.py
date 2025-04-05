@@ -36,6 +36,10 @@ if __name__ == "__main__":
             y="hamming",
             data=df,
         )
+        plt.xlabel("Score")
+        plt.ylabel("Hamming similarity to optimal solution")
         plt.axvline(x=best_score, color="r", linestyle="--")
+        plt.title("Similarity to optimal solution for " + instance)
+        plt.tight_layout()
 
         plt.savefig(f"plots/{instance}_scatter.png")
