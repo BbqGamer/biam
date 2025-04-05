@@ -59,6 +59,7 @@ if __name__ == "__main__":
         fig.suptitle(problem)
         plt.tight_layout()
         plt.savefig(f"plots/{problem}.png")
+        plt.close(fig)
 
     for file in pathlib.Path("results").glob("*ls.csv"):
         instance = file.name.split(".")[0][:-3]
@@ -102,3 +103,15 @@ if __name__ == "__main__":
 
         plt.title(problem)
         plt.savefig(f"plots/{problem}_multistart_ls.png")
+        plt.close(fig)
+
+        fig = plt.figure()
+        plt.tight_layout()
+        plt.title(f"Starting vs ending score for {instance}")
+        sns.scatterplot(x="start_score", y="score", data=df, hue="alg")
+        plt.xlabel("Starting score")
+        plt.ylabel("Ending score")
+        plt.axhline(y=best_score, color="r", linestyle="--")
+        plt.axvline(x=best_score, color="r", linestyle="--")
+        plt.savefig(f"plots/{problem}_start_vs_end.png")
+        plt.close(fig)
