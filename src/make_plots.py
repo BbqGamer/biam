@@ -89,8 +89,10 @@ if __name__ == "__main__":
                 axs[i].set_yscale("log")
 
             df_plot = df_all
-            if metric in ("steps", "evals"):
+            if metric == "steps":
                 df_plot = df_plot[df_plot["alg"].isin(["G", "S"])]
+            elif metric == "evals":
+                df_plot = df_plot[df_plot["alg"].isin(["G", "S", "RS", "RW"])]
 
             sns.boxplot(
                 df_plot[df_plot["instance"] == instance], x="alg", y=metric, ax=axs[i]
