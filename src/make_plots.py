@@ -21,6 +21,7 @@ def get_list(s):
 
 
 if __name__ == "__main__":
+    df_all = pd.DataFrame()
     for file in pathlib.Path("results").glob("*[!ls].csv"):
         problem = file.name.split(".")[0]
 
@@ -31,6 +32,8 @@ if __name__ == "__main__":
         df = pd.read_csv(file)
         df["dist_from_best"] = df["score"] - best
         df["quality_over_time"] = df["score"] / df["time"]
+        df["instance"] = problem
+        df_all = pd.concat([df_all, df], ignore_index=True)
 
         fig, axs = plt.subplots(1, 5, figsize=(24, 6))
 
@@ -59,6 +62,42 @@ if __name__ == "__main__":
         fig.suptitle(problem)
         plt.tight_layout()
         plt.savefig(f"plots/{problem}.png")
+        plt.close(fig)
+
+    metric_map = {
+        "time": "Time (ms)",
+        "score": "Score",
+        "dist_from_best": "Difference in score from optimum",
+        "quality_over_time": "Quality over time (log scale)",
+        "steps": "Number of steps",
+        "evals": "Number of evaluations",
+    }
+    for metric in metric_map.keys():
+        fig, axs = plt.subplots(1, df_all["instance"].nunique(), figsize=(20, 5))
+        for i, instance in enumerate(
+            sorted(
+                df_all["instance"].dropna().unique(),
+                key=lambda a: int("".join([x for x in a if x.isnumeric()])),
+            )
+        ):
+            fig.suptitle(metric_map[metric])
+            plt.tight_layout()
+            axs[i].get_yaxis()
+            axs[i].set_title(instance)
+
+            if metric == "quality_over_time":
+                axs[i].set_yscale("log")
+
+            df_plot = df_all
+            if metric in ("steps", "evals"):
+                df_plot = df_plot[df_plot["alg"].isin(["G", "S"])]
+
+            sns.boxplot(
+                df_plot[df_plot["instance"] == instance], x="alg", y=metric, ax=axs[i]
+            )
+            axs[i].set_ylabel("")
+            axs[i].set_xlabel("")
+        plt.savefig(f"plots/{metric}.png")
         plt.close(fig)
 
     for file in pathlib.Path("results").glob("*ls.csv"):
