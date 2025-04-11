@@ -339,3 +339,80 @@ void randomwalk(struct QAP *qap, struct QAP_results *res) {
         i++;
     }
 }
+
+void swap(int *solution, int i, int j) {
+    int tmp = solution[i];
+    solution[i] = solution[j];
+    solution[j] = tmp;
+}
+
+#define PATIENCE 500
+#define MAX_ITERATIONS 10000
+
+void tabusearch(struct QAP *qap, struct QAP_results *res, int tabutime) {
+    int patience = PATIENCE;
+    int n = qap->n;
+    res->score = evaluate_solution(res->solution, qap);
+
+    int cur_solution[MAX_QAP_SIZE];
+    memcpy(cur_solution, res->solution, sizeof(cur_solution));
+    int cur_score = res->score;
+
+    static int tabu_tenure[MAX_QAP_SIZE][MAX_QAP_SIZE];
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            tabu_tenure[i][j] = 0;
+        }
+    }
+
+    int iteration;
+    for (iteration = 0; iteration < MAX_ITERATIONS && patience >= 0; iteration++) {
+        int best_i = -1;
+        int best_j = -1;
+        int best_delta = INT_MAX; 
+
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                int delta = get_delta(cur_solution, i, j, qap);
+                bool isTabu = (tabu_tenure[i][j] > iteration);
+
+                // "Aspiration criterion": if this move yields a solution better than the global best,
+                // then ignore the tabu.
+                bool aspiration = false;
+                int new_score = cur_score + delta;
+                if (new_score < res->score) {
+                    aspiration = true;
+                }
+
+                // We look for the best move that is not tabu, or is tabu but meets aspiration
+                // notice that we can also select non-improving moves
+                if ((delta < best_delta) && (!isTabu || aspiration)) {
+                    best_delta = delta;
+                    best_i = i;
+                    best_j = j;
+                }
+            }
+        }
+
+        res->evaluated += n * (n - 1) / 2;
+        if (best_i == -1 || best_j == -1) {
+            // Everything is tabu, and no aspiration
+            break;
+        } else {
+            res->steps++;
+            swap(cur_solution, best_i, best_j);
+            cur_score += best_delta;
+
+            tabu_tenure[best_i][best_j] = iteration + tabutime;
+            tabu_tenure[best_j][best_i] = iteration + tabutime;
+
+            if (cur_score < res->score) {
+                patience = PATIENCE;
+                res->score = cur_score;
+                memcpy(res->solution, cur_solution, sizeof(cur_solution));
+            } else {
+                patience--;
+            }
+        }
+    }
+}
