@@ -341,24 +341,41 @@ void swap(int *solution, int i, int j) {
   solution[i] = solution[j];
   solution[j] = tmp;
 }
+
+void deepcopy_QAP_results(struct QAP_results *dest,
+                          const struct QAP_results *src) {
+  dest->score = src->score;
+  dest->evaluated = src->evaluated;
+  dest->steps = src->steps;
+  memcpy(dest->solution, src->solution, sizeof(int) * MAX_QAP_SIZE);
+}
+
 #define STARTING_TEMPERATURE 0.95
-#define ALPHA 0.85
+#define ALPHA 0.99
 
 void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
+  int iter = 0;
   double temperature = STARTING_TEMPERATURE;
   int i, j = 0, besti, bestj, tmp, delta;
   res->score = evaluate_solution(res->solution, qap);
   bool improved = true;
   int permi[MAX_QAP_SIZE], permj[MAX_QAP_SIZE];
   int cooldown = 0;
-  struct QAP_results *best_sol;
-  best_sol = res;
+  struct QAP_results best_sol;
+  deepcopy_QAP_results(&best_sol, res);
+  int tolerance = 0;
   // tolerance, chain_length -- we want to stop the algorithm after no
   // improvement in P*L
   while (improved || (temperature > 0)) {
     // Exponential decreasing schema
     if (cooldown++ == (qap->n / 2)) {
+      iter++;
       temperature *= ALPHA;
+      // No improvement over 5 temp levels
+      if (tolerance++ >= 5) {
+        printf("TOLERANCE ERR temp:%f, iter: %d\n", temperature, iter);
+        // temperature = 0;
+      }
       // Final convergence check
       if (temperature <= 0.01) {
         temperature = 0;
@@ -380,7 +397,7 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
           bestj = permj[j];
           improved = true;
           break;
-        } else if (temperature > rand()) {
+        } else if (temperature >= (double)rand() / RAND_MAX) {
           besti = permi[i];
           bestj = permj[j];
           improved = true;
@@ -391,6 +408,8 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
     res->evaluated += i + j;
 
     if (improved) {
+      tolerance = 0;
+
       res->steps++;
       res->score += delta;
 
@@ -398,14 +417,15 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
       res->solution[besti] = res->solution[bestj];
       res->solution[bestj] = tmp;
     }
-    if (res->score < best_sol->score) {
-      best_sol = res;
+    // printf("OLD SCORE: %d NEW SCORE: %d\n", res->score,best_sol.score);
+    if (res->score < best_sol.score) {
+      deepcopy_QAP_results(&best_sol, res);
     }
-    res = best_sol;
   }
+  deepcopy_QAP_results(res, &best_sol);
 }
 #define PATIENCE 500
-#define MAX_ITERATIONS 20000
+#define MAX_ITERATIONS 10000
 
 void tabusearch(struct QAP *qap, struct QAP_results *res, int tabutime) {
   int patience = PATIENCE;
