@@ -30,3 +30,4 @@ void randomwalk(struct QAP *qap, struct QAP_results *res);
 void localsearchgreedy(struct QAP *qap, struct QAP_results *res);
 void localsearchsteepest(struct QAP *qap, struct QAP_results *res);
 void tabusearch(struct QAP *qap, struct QAP_results *res, int tabutime);
+void simulatedannealing(struct QAP *qap, struct QAP_results *res);
