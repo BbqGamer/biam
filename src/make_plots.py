@@ -22,7 +22,10 @@ def get_list(s):
 
 if __name__ == "__main__":
     df_all = pd.DataFrame()
-    for file in pathlib.Path("results").glob("*[!ls].csv"):
+    for file in pathlib.Path("results").glob("*[!_]*.csv"):
+        if "_" in file.name:
+            continue
+        print(file.name)
         problem = file.name.split(".")[0]
 
         with open(f"data/qaplib/{problem}.sln") as f:
@@ -157,4 +160,66 @@ if __name__ == "__main__":
         plt.axhline(y=best_score, color="r", linestyle="--")
         plt.axvline(x=best_score, color="r", linestyle="--")
         plt.savefig(f"plots/{problem}_start_vs_end.png")
+        plt.close(fig)
+
+    for file in pathlib.Path("results").glob("*sa.csv"):
+        instance = file.name.split(".")[0][:-3]
+        with open(f"data/qaplib/{instance}.sln") as f:
+            lines = f.readlines()
+            best_score = float(lines[0].split()[1])
+            best_sol = get_list(lines[1].strip())
+
+        problem = file.name.split(".")[0][:-3]
+        df = pd.read_csv(file)
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.set_ylabel("Score")
+        ax.set_xlabel("Repetition")
+        sns.lineplot(
+            np.minimum.accumulate(df["score"].values.tolist()),
+            label="best",
+            color="orange",
+            linewidth=2,
+        )
+        sns.lineplot(
+            cum_mean(df["score"].values),
+            label="average",
+            color="orange",
+            linestyle="--",
+        )
+        ax.axhline(y=best_score, color="r", linestyle="--", label="global optimum")
+
+        plt.title(problem)
+        plt.savefig(f"plots/{problem}_sa.png")
+        plt.close(fig)
+
+    for file in pathlib.Path("results").glob("*ts.csv"):
+        instance = file.name.split(".")[0][:-3]
+        with open(f"data/qaplib/{instance}.sln") as f:
+            lines = f.readlines()
+            best_score = float(lines[0].split()[1])
+            best_sol = get_list(lines[1].strip())
+
+        problem = file.name.split(".")[0][:-3]
+        df = pd.read_csv(file)
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.set_ylabel("Score")
+        ax.set_xlabel("Repetition")
+        sns.lineplot(
+            np.minimum.accumulate(df["score"].values.tolist()),
+            label="best",
+            color="orange",
+            linewidth=2,
+        )
+        sns.lineplot(
+            cum_mean(df["score"].values),
+            label="average",
+            color="orange",
+            linestyle="--",
+        )
+        ax.axhline(y=best_score, color="r", linestyle="--", label="global optimum")
+
+        plt.title(problem)
+        plt.savefig(f"plots/{problem}_ts.png")
         plt.close(fig)

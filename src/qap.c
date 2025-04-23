@@ -351,12 +351,13 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
   bool improved = true;
   int permi[MAX_QAP_SIZE], permj[MAX_QAP_SIZE];
   int cooldown = 0;
-  int tolerance = 0;
-  int chain_length = 1;
-  // tolerance, chain_length -- we want to stop the algorithm after no improvement in P*L 
+  struct QAP_results *best_sol;
+  best_sol = res;
+  // tolerance, chain_length -- we want to stop the algorithm after no
+  // improvement in P*L
   while (improved || (temperature > 0)) {
     // Exponential decreasing schema
-    if (cooldown++ == (qap->n/2)) {
+    if (cooldown++ == (qap->n / 2)) {
       temperature *= ALPHA;
       // Final convergence check
       if (temperature <= 0.01) {
@@ -364,7 +365,6 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
       }
       cooldown = 0;
     }
-    tolerance++;
     improved = false;
     random_permutation(permi, qap->n);
     for (i = 0; i < qap->n; i++) {
@@ -379,13 +379,11 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
           besti = permi[i];
           bestj = permj[j];
           improved = true;
-          tolerance = 0;
           break;
         } else if (temperature > rand()) {
           besti = permi[i];
           bestj = permj[j];
           improved = true;
-          tolerance = 0;
           break;
         }
       }
@@ -400,10 +398,14 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
       res->solution[besti] = res->solution[bestj];
       res->solution[bestj] = tmp;
     }
+    if (res->score < best_sol->score) {
+      best_sol = res;
+    }
+    res = best_sol;
   }
 }
 #define PATIENCE 500
-#define MAX_ITERATIONS 10000
+#define MAX_ITERATIONS 20000
 
 void tabusearch(struct QAP *qap, struct QAP_results *res, int tabutime) {
   int patience = PATIENCE;

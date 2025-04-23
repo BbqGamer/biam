@@ -32,8 +32,8 @@ def benchmark_ts(instance):
 
 if __name__ == "__main__":
     with multiprocessing.Pool(processes=16) as pool:
-        pool.map(benchmark, instances)
-        pool.map(benchmark_ls, instances)
+        # pool.map(benchmark, instances)
+        # pool.map(benchmark_ls, instances)
         pool.map(benchmark_sa, instances)
         pool.map(benchmark_ts, instances)
 
