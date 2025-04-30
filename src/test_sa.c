@@ -1,5 +1,5 @@
 #include "qap.h"
-#include "random.h"
+#include "utils.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>

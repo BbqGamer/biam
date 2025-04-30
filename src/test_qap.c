@@ -1,5 +1,5 @@
 #include "qap.h"
-#include "random.h"
+#include "utils.h"
 #include <assert.h>
 #include <bits/getopt_core.h>
 #include <stdbool.h>

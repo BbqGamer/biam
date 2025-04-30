@@ -1,4 +1,4 @@
-#include "random.h"
+#include "utils.h"
 
 #define REPS 20
 #define ARR_SIZE 10
