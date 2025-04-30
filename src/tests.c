@@ -4,11 +4,13 @@
 
 #define REPS 20
 #define ARR_SIZE 10
+#define FUZZY 10000
 
 void test_evaluate() {
     glob_t pglob;
     glob("data/*.dat", 0, NULL, &pglob);
-    size_t i;
+    int a, b, delta;
+    size_t i, j;
     struct QAP qap;
     struct QAP_results res;
     for (i = 0; i < pglob.gl_pathc; i++) {
@@ -23,6 +25,20 @@ void test_evaluate() {
                 printf("%d ", res.solution[i]);
             }
             exit(1);
+        }
+        
+        // fuzzy test delta
+        for(j = 0; j < FUZZY; j++) {
+            random_pair(&a, &b, qap.n);
+            delta = get_delta(res.solution, a, b, &qap);
+            swap(res.solution, a, b);
+            score = evaluate_solution(res.solution, &qap);
+            if (res.score + delta != score) {
+                fprintf(stderr, "%s: Delta was calculated incorrectly (%d != %d)",
+                   pglob.gl_pathv[i], res.score, score);
+                exit(1);
+            }
+            res.score = score;
         }
     }
 }
