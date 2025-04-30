@@ -1,6 +1,13 @@
 # biam
 Biologically-inspired algorithms and models
 
+## Data
+Download data from [QAPLIB](https://qaplib.mgi.polymtl.ca/)
+Or just run the following script:
+```
+sh download_data.sh
+```
+
 ## Usage
 To build all the executables run
 ```
