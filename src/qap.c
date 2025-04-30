@@ -52,9 +52,20 @@ void read_instance(char *filename, struct QAP *qap) {
   fclose(fp);
 }
 
-int read_solution(char *filename, int n, struct QAP_results *res) {
+int read_solution(char *dat_path, int n, struct QAP_results *res) {
+  char sln_path[1024];
+  strncpy(sln_path, dat_path, sizeof(sln_path) - 1);
+  sln_path[sizeof(sln_path) - 1] = '\0';
+  char *dot = strrchr(sln_path, '.');
+  if (dot && strcmp(dot, ".dat") == 0) {
+    strcpy(dot, ".sln");
+  } else {
+    fprintf(stderr, "Input file must have a .dat extension.\n");
+    exit(1);
+  }
+
   FILE *fp;
-  if ((fp = fopen(filename, "r")) == NULL) {
+  if ((fp = fopen(sln_path, "r")) == NULL) {
     return 0;
   }
   int i, *p, nsol;
@@ -75,7 +86,7 @@ int read_solution(char *filename, int n, struct QAP_results *res) {
 
   p = res->solution;
   for (i = 0; i < nsol; i++) {
-    if (fscanf(fp, "%d", p) != 1) {
+    if (fscanf(fp, "%d%*[, \t\n]", p) != 1) {
         fprintf(stderr, "Could not read value from solution\n");
         exit(1);
     }

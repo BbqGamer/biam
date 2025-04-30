@@ -21,7 +21,7 @@ struct QAP_results {
 
 void deepcopy_QAP_results(struct QAP_results *dest, const struct QAP_results *src);
 void read_instance(char *filename, struct QAP *qap);
-int read_solution(char *filename, int n, struct QAP_results *res);
+int read_solution(char *dat_filename, int n, struct QAP_results *res);
 int evaluate_solution(int *sol, struct QAP *qap);
 int get_delta(int *sol, int i, int j, struct QAP *qap);
 
