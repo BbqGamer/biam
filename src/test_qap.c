@@ -86,6 +86,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
+  if (optind >= argc) {
+      fprintf(stderr, "Missing .dat file\n");
+      exit(EXIT_FAILURE);
+  }
   char *dat_path = argv[optind];
   char sln_path[1024];
 
