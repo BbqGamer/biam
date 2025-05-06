@@ -74,18 +74,6 @@ int main(int argc, char *argv[]) {
   }
 
   char *dat_path = argv[1];
-  char sln_path[1024];
-
-  strncpy(sln_path, dat_path, sizeof(sln_path) - 1);
-  sln_path[sizeof(sln_path) - 1] = '\0';
-
-  char *dot = strrchr(sln_path, '.');
-  if (dot && strcmp(dot, ".dat") == 0) {
-    strcpy(dot, ".sln");
-  } else {
-    fprintf(stderr, "Input file must have a .dat extension.\n");
-    exit(1);
-  }
 
   struct QAP instance;
   read_instance(dat_path, &instance);
@@ -93,7 +81,7 @@ int main(int argc, char *argv[]) {
   instance.timeout_ms = 1000;
 
   struct QAP_results res;
-  if (read_solution(sln_path, instance.n, &res)) {
+  if (read_solution(dat_path, instance.n, &res)) {
     fprintf(stderr, "Loaded .sln file!\n\n");
     int eval_score = evaluate_solution(res.solution, &instance);
     if (eval_score != res.score) {
