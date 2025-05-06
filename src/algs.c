@@ -1,8 +1,10 @@
 #include "algs.h"
 #include "utils.h"
-#include <stdbool.h>
-#include <string.h>
 #include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
 void heuristic(struct QAP *qap, struct QAP_results *res) {
   int subsumsA[MAX_QAP_SIZE];
@@ -161,14 +163,24 @@ void randomwalk(struct QAP *qap, struct QAP_results *res) {
   }
 }
 
-#define STARTING_TEMPERATURE 0.95
 #define ALPHA 0.99
-
+double get_sample_delta(struct QAP *qap, struct QAP_results *res) {
+  int sum_delta = 0;
+  for (int n = 0; n < (qap->n*qap->n); n++) {
+    int i, j;
+    random_pair(&i, &j, qap->n);
+    int delta = get_delta(res->solution, i, j, qap);
+    sum_delta += delta;
+  }
+  return (double)sum_delta / (double)(qap->n*qap->n);
+}
 void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
   int iter = 0;
-  double temperature = STARTING_TEMPERATURE;
+
   int i, j = 0, besti, bestj, tmp, delta;
   res->score = evaluate_solution(res->solution, qap);
+  double temperature = -get_sample_delta(qap, res) / log(0.99);
+  // printf("Initial Temp: %f\n", temperature);
   bool improved = true;
   int permi[MAX_QAP_SIZE], permj[MAX_QAP_SIZE];
   int cooldown = 0;
@@ -179,19 +191,20 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
   // improvement in P*L
   while (improved || (temperature > 0)) {
     // Exponential decreasing schema
-    if (cooldown++ == (qap->n / 2)) {
+    if (cooldown == (qap->n*10)) {
       iter++;
       temperature *= ALPHA;
       // No improvement over 5 temp levels
-      if (tolerance++ >= 5) {
-        printf("TOLERANCE ERR temp:%f, iter: %d\n", temperature, iter);
-        // temperature = 0;
-      }
+
       // Final convergence check
       if (temperature <= 0.01) {
         temperature = 0;
       }
       cooldown = 0;
+    }
+    if (tolerance++ >= (qap->n * 2)) {
+      printf("TOLERANCE ERR temp:%f, iter: %d\n", temperature, iter);
+      temperature = 0;
     }
     improved = false;
     random_permutation(permi, qap->n);
@@ -208,7 +221,17 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
           bestj = permj[j];
           improved = true;
           break;
-        } else if (temperature >= (double)rand() / RAND_MAX) {
+        }
+        if (temperature == 0) {
+          continue;
+        }
+        double random_temp = 0.0;
+        random_temp = exp(-1 * (double)delta/ temperature);
+        // printf("delta: %d\n", delta);
+        // printf("temp %f\n", temperature);
+        // printf("random_temp: %f\n", random_temp);
+        if (random_temp >= (double)rand() / RAND_MAX) {
+          cooldown++;
           besti = permi[i];
           bestj = permj[j];
           improved = true;
@@ -266,8 +289,8 @@ void tabusearch(struct QAP *qap, struct QAP_results *res, int tabutime) {
         int delta = get_delta(cur_solution, i, j, qap);
         bool isTabu = (tabu_tenure[i][j] > iteration);
 
-        // "Aspiration criterion": if this move yields a solution better than
-        // the global best, then ignore the tabu.
+        // "Aspiration criterion": if this move yields a solution better
+        // than the global best, then ignore the tabu.
         bool aspiration = false;
         int new_score = cur_score + delta;
         if (new_score < res->score) {
