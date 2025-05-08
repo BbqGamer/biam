@@ -35,6 +35,6 @@ if __name__ == "__main__":
         # pool.map(benchmark, instances)
         # pool.map(benchmark_ls, instances)
         pool.map(benchmark_sa, instances)
-        pool.map(benchmark_ts, instances)
+        # pool.map(benchmark_ts, instances)
 
     print("All instances have been processed.")

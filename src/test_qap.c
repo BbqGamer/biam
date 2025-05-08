@@ -2,9 +2,9 @@
 #include "utils.h"
 #include <assert.h>
 #include <bits/getopt_core.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <limits.h>
 #include <string.h>
 typedef void (*evalfunc)(struct QAP *, struct QAP_results *);
 
@@ -39,17 +39,18 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
     cur_time = (float)(end - start) / CLOCKS_PER_SEC * 1000;
     sum_time += cur_time;
 
-    fprintf(stdout, "%s,%d,%d,%.3f,%d,%d,", name, start_score, score, cur_time, res.evaluated, res.steps);
-    for(int i = 0; i < instance->n - 1; i++) {
+    fprintf(stdout, "%s,%d,%d,%.3f,%d,%d,", name, start_score, score, cur_time,
+            res.evaluated, res.steps);
+    for (int i = 0; i < instance->n - 1; i++) {
       printf("%d ", start_solution[i] + 1);
     }
     printf("%d,", start_solution[instance->n - 1] + 1);
 
-    for(int i = 0; i < instance->n - 1; i++) {
+    for (int i = 0; i < instance->n - 1; i++) {
       printf("%d ", res.solution[i] + 1);
     }
     printf("%d\n", res.solution[instance->n - 1] + 1);
-    
+
     sum += score;
     sum_evaluated += res.evaluated;
     sum_steps += res.steps;
@@ -62,7 +63,7 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
   }
   fprintf(stderr, "%.2f (%d - %d)\n", (float)sum / K, min, max);
   fprintf(stderr, "avg time: %.3f ms, avg evals: %.2f, avg steps: %.2f \n\n",
-     sum_time / K, (float)sum_evaluated / K, (float)sum_steps / K);
+          sum_time / K, (float)sum_evaluated / K, (float)sum_steps / K);
   return sum_time / K;
 }
 
@@ -72,23 +73,23 @@ int main(int argc, char *argv[]) {
   int opt;
 
   while ((opt = getopt(argc, argv, "lK:")) != -1) {
-        switch (opt) {
-            case 'l':
-                just_ls = true;
-                break;
-            case 'K':
-                // Convert the string argument to an integer
-                K= atoi(optarg);
-                break;
-            default:
-                fprintf(stderr, "Usage: %s [-l] [-K integer]\n", argv[0]);
-                exit(EXIT_FAILURE);
-        }
+    switch (opt) {
+    case 'l':
+      just_ls = true;
+      break;
+    case 'K':
+      // Convert the string argument to an integer
+      K = atoi(optarg);
+      break;
+    default:
+      fprintf(stderr, "Usage: %s [-l] [-K integer]\n", argv[0]);
+      exit(EXIT_FAILURE);
     }
+  }
 
   if (optind >= argc) {
-      fprintf(stderr, "Missing .dat file\n");
-      exit(EXIT_FAILURE);
+    fprintf(stderr, "Missing .dat file\n");
+    exit(EXIT_FAILURE);
   }
   char *dat_path = argv[optind];
 
@@ -102,10 +103,12 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Loaded .sln file!\n\n");
     int eval_score = evaluate_solution(res.solution, &instance);
     if (eval_score != res.score) {
-      fprintf(stderr, "Eval_score != res.score (%d != %d)", eval_score, res.score);
+      fprintf(stderr, "Eval_score != res.score (%d != %d)", eval_score,
+              res.score);
       return -1;
     }
-    fprintf(stderr, "Optimal score: %d (sanity check: %d)\n\n", res.score, eval_score);
+    fprintf(stderr, "Optimal score: %d (sanity check: %d)\n\n", res.score,
+            eval_score);
   }
 
   fprintf(stdout, "alg,start_score,score,time,evals,steps,starting,solution\n");
@@ -113,7 +116,7 @@ int main(int argc, char *argv[]) {
   float time_greedy = execute_test(localsearchgreedy, &instance, "G", K);
   float time_steepest = execute_test(localsearchsteepest, &instance, "S", K);
 
-  if(!just_ls) {
+  if (!just_ls) {
     instance.timeout_ms = (time_greedy + time_steepest) / 2;
     fprintf(stderr, "Timeout set to %.4f ms\n", instance.timeout_ms);
 
