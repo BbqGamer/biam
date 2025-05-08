@@ -166,13 +166,13 @@ void randomwalk(struct QAP *qap, struct QAP_results *res) {
 #define ALPHA 0.99
 double get_sample_delta(struct QAP *qap, struct QAP_results *res) {
   int sum_delta = 0;
-  for (int n = 0; n < (qap->n*qap->n); n++) {
+  for (int n = 0; n < (qap->n * qap->n); n++) {
     int i, j;
     random_pair(&i, &j, qap->n);
     int delta = get_delta(res->solution, i, j, qap);
-    sum_delta += delta;
+    sum_delta += abs(delta);
   }
-  return (double)sum_delta / (double)(qap->n*qap->n);
+  return (double)sum_delta / (double)(qap->n * qap->n);
 }
 void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
   int iter = 0;
@@ -180,7 +180,7 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
   int i, j = 0, besti, bestj, tmp, delta;
   res->score = evaluate_solution(res->solution, qap);
   double temperature = -get_sample_delta(qap, res) / log(0.99);
-  // printf("Initial Temp: %f\n", temperature);
+
   bool improved = true;
   int permi[MAX_QAP_SIZE], permj[MAX_QAP_SIZE];
   int cooldown = 0;
@@ -191,7 +191,7 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
   // improvement in P*L
   while (improved || (temperature > 0)) {
     // Exponential decreasing schema
-    if (cooldown == (qap->n*10)) {
+    if (cooldown == (qap->n * 10)) {
       iter++;
       temperature *= ALPHA;
       // No improvement over 5 temp levels
@@ -203,7 +203,7 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
       cooldown = 0;
     }
     if (tolerance++ >= (qap->n * 2)) {
-      printf("TOLERANCE ERR temp:%f, iter: %d\n", temperature, iter);
+      fprintf(stderr, "TOLERANCE ERR temp:%f, iter: %d\n", temperature, iter);
       temperature = 0;
     }
     improved = false;
@@ -226,7 +226,7 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
           continue;
         }
         double random_temp = 0.0;
-        random_temp = exp(-1 * (double)delta/ temperature);
+        random_temp = exp(-1 * (double)delta / temperature);
         // printf("delta: %d\n", delta);
         // printf("temp %f\n", temperature);
         // printf("random_temp: %f\n", random_temp);
