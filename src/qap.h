@@ -28,7 +28,7 @@ void deepcopy_QAP_results(struct QAP_results *dest, const struct QAP_results *sr
 void read_instance(char *filename, struct QAP *qap);
 int read_solution(char *dat_filename, int n, struct QAP_results *res);
 int evaluate_solution(int *sol, struct QAP *qap);
-int get_delta(int *sol, int i, int j, struct QAP *qap);
+int get_delta(const int *restrict sol, int i, int j, const struct QAP *restrict qap);
 
 
 void heuristic(struct QAP *qap, struct QAP_results *res);

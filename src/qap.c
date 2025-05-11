@@ -109,7 +109,11 @@ int evaluate_solution(int *sol, struct QAP *qap) {
   return result;
 }
 
-int get_delta(int *sol, int i, int j, struct QAP *qap) {
+int get_delta(
+    const int *restrict sol,
+    int i, int j,
+    const struct QAP *restrict qap)
+{
   /*
     delta = ( A[jj] - A[ii] ) * ( B[p_i p_i] - B[p_j p_j] )
           + ( A[ji] - A[ij] ) * ( B[p_i p_j] - B[p_j p_i] )
@@ -123,20 +127,18 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
   int pi = sol[i];
   int pj = sol[j];
 
-  int *Ai = qap->A + i * n;
-  int *Aj = qap->A + j * n;
-  int *Bpi = qap->B + pi * n;
-  int *Bpj = qap->B + pj * n;
+  const int *restrict Ai  = qap->A   + i * n;
+  const int *restrict Aj  = qap->A   + j * n;
+  const int *restrict Aki = qap->_AT + i * n;
+  const int *restrict Akj = qap->_AT + j * n;
+
+  const int *restrict Bpi = qap->B    + pi * n;
+  const int *restrict Bpj = qap->B    + pj * n;
+  const int *restrict BTpi = qap->_BT + pi * n;
+  const int *restrict BTpj = qap->_BT + pj * n;
 
   int delta = (Aj[j] - Ai[i]) * (Bpi[pi] - Bpj[pj]) \
             + (Aj[i] - Ai[j]) * (Bpi[pj] - Bpj[pi]);
-
-  int sum = 0;
-  int *Aki = qap->_AT + i * n; // points to A[k*n + i]
-  int *Akj = qap->_AT + j * n; // points to A[k*n + j]
-
-  int *BTpi = qap->_BT + pi * n;
-  int *BTpj = qap->_BT + pj * n;
 
   for (int k = 0; k < n; k++) {
     if (k != i && k != j) {
@@ -149,11 +151,9 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
       int b_diff2 = BTpi[s_k] - BTpj[s_k];   // (B[p_k p_i] - B[p_k p_j])
 
 
-      sum += a_diff1 * b_diff1 + a_diff2 * b_diff2;
+      delta += a_diff1 * b_diff1 + a_diff2 * b_diff2;
     }
   }
-
-  delta += sum;
   return delta;
 }
 
