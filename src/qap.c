@@ -39,14 +39,15 @@ void read_instance(char *filename, struct QAP *qap) {
     }
   }
 
-  p = qap->B;
+  int val;
   for (i = 0; i < qap->n; i++) {
     for (j = 0; j < qap->n; j++) {
-      if(fscanf(fp, "%d", p) != 1) {
+      if(fscanf(fp, "%d", &val) != 1) {
           fprintf(stderr, "Could not read value from matrix B\n");
           exit(1);
       }
-      p++;
+      qap->B[i * qap->n + j] = val;
+      qap->_BT[j * qap->n + i] = val;
     }
   }
   fclose(fp);
@@ -122,29 +123,17 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
   int *A = qap->A;
   int *B = qap->B;
 
-  // Current assignments for locations i and j
   int pi = sol[i];
   int pj = sol[j];
 
-  // Row pointers in A for row i, row j
   int *Ai = A + i * n;
   int *Aj = A + j * n;
-
-  // Row pointers in B for row p_i, row p_j
   int *Bpi = B + pi * n;
   int *Bpj = B + pj * n;
 
-  // Cache a few repeated accesses
-  int Aii = Ai[i], Ajj = Aj[j];
-  int Aij = Ai[j], Aji = Aj[i];
+  int delta = (Aj[j] - Ai[i]) * (Bpi[pi] - Bpj[pj]) \
+            + (Aj[i] - Ai[j]) * (Bpi[pj] - Bpj[pi]);
 
-  int Bpi_pi = Bpi[pi], Bpj_pj = Bpj[pj];
-  int Bpi_pj = Bpi[pj], Bpj_pi = Bpj[pi];
-
-  // First (constant) part of delta
-  int delta = (Ajj - Aii) * (Bpi_pi - Bpj_pj) + (Aji - Aij) * (Bpi_pj - Bpj_pi);
-
-  // We'll sum over k != i, j
   int sum = 0;
 
   // For convenient pointer arithmetic:
