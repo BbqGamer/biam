@@ -8,6 +8,11 @@
 struct QAP {
   int A[MAX_QAP_SIZE * MAX_QAP_SIZE];
   int B[MAX_QAP_SIZE * MAX_QAP_SIZE];
+
+  // for more efficient delta calculation store transposes
+  int _AT[MAX_QAP_SIZE * MAX_QAP_SIZE];
+  int _BT[MAX_QAP_SIZE * MAX_QAP_SIZE];
+  
   int n;
   float timeout_ms;
 };

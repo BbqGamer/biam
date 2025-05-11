@@ -28,18 +28,18 @@ void read_instance(char *filename, struct QAP *qap) {
     exit(1);
   }
 
-  p = qap->A;
+  int val;
   for (i = 0; i < qap->n; i++) {
     for (j = 0; j < qap->n; j++) {
-      if(fscanf(fp, "%d", p) != 1) {
+      if(fscanf(fp, "%d", &val) != 1) {
           fprintf(stderr, "Could not read value from matrix A\n");
           exit(1);
       }
-      p++;
+      qap->A[i * qap->n + j] = val;
+      qap->_AT[j * qap->n + i] = val;
     }
   }
 
-  int val;
   for (i = 0; i < qap->n; i++) {
     for (j = 0; j < qap->n; j++) {
       if(fscanf(fp, "%d", &val) != 1) {
@@ -122,6 +122,8 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
   int n = qap->n;
   int *A = qap->A;
   int *B = qap->B;
+  int *AT = qap->_AT;
+  int *BT = qap->_BT;
 
   int pi = sol[i];
   int pj = sol[j];
@@ -141,8 +143,8 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
   //  - Aki_ptr, Akj_ptr will traverse column i and j in A for rows k=0..n-1
   int *Ai_ptr = Ai;     // points to A[i*n + k] as k increments
   int *Aj_ptr = Aj;     // points to A[j*n + k]
-  int *Aki_ptr = A + i; // points to A[k*n + i]
-  int *Akj_ptr = A + j; // points to A[k*n + j]
+  int *Aki_ptr = AT + i * n; // points to A[k*n + i]
+  int *Akj_ptr = AT + j * n; // points to A[k*n + j]
 
   // Loop over all k, skip i and j
   for (int k = 0; k < n; k++) {
@@ -156,8 +158,8 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
       int b_diff2 = Bsk[pi] - Bsk[pj];   // (B[p_k p_i] - B[p_k p_j])
 
       // Gather A–related differences
-      int a_diff1 = (Aj_ptr[0] - Ai_ptr[0]);   // (A[j,k] - A[i,k])
-      int a_diff2 = (Akj_ptr[0] - Aki_ptr[0]); // (A[k,j] - A[k,i])
+      int a_diff1 = (*Aj_ptr - *Ai_ptr);   // (A[j,k] - A[i,k])
+      int a_diff2 = (*Akj_ptr - *Aki_ptr); // (A[k,j] - A[k,i])
 
       sum += a_diff1 * b_diff1 + a_diff2 * b_diff2;
     }
@@ -166,8 +168,8 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
     // and from row k to row k+1 for Aki, Akj
     Ai_ptr++;
     Aj_ptr++;
-    Aki_ptr += n;
-    Akj_ptr += n;
+    Aki_ptr++;
+    Akj_ptr++;
   }
 
   delta += sum;
