@@ -132,13 +132,8 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
             + (Aj[i] - Ai[j]) * (Bpi[pj] - Bpj[pi]);
 
   int sum = 0;
-  // For convenient pointer arithmetic:
-  //  - Ai_ptr, Aj_ptr will traverse row i and j in A for columns k=0..n-1
-  //  - Aki_ptr, Akj_ptr will traverse column i and j in A for rows k=0..n-1
-  int *Ai_ptr = Ai;          // points to A[i*n + k] as k increments
-  int *Aj_ptr = Aj;          // points to A[j*n + k]
-  int *Aki_ptr = qap->_AT + i * n; // points to A[k*n + i]
-  int *Akj_ptr = qap->_AT + j * n; // points to A[k*n + j]
+  int *Aki = qap->_AT + i * n; // points to A[k*n + i]
+  int *Akj = qap->_AT + j * n; // points to A[k*n + j]
 
   int *BTpi = qap->_BT + pi * n;
   int *BTpj = qap->_BT + pj * n;
@@ -147,8 +142,8 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
     if (k != i && k != j) {
       int s_k = sol[k];
 
-      int a_diff1 = (Aj_ptr[k] - Ai_ptr[k]);     // (A[jk] - A[ik])
-      int a_diff2 = (Akj_ptr[k] - Aki_ptr[k]);   // (A[kj] - A[ki])
+      int a_diff1 = (Aj[k] - Ai[k]);     // (A[jk] - A[ik])
+      int a_diff2 = (Akj[k] - Aki[k]);   // (A[kj] - A[ki])
 
       int b_diff1 = Bpi[s_k] - Bpj[s_k];     // (B[p_i p_k] - B[p_j p_k])
       int b_diff2 = BTpi[s_k] - BTpj[s_k];   // (B[p_k p_i] - B[p_k p_j])
