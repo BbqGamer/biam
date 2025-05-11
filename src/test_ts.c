@@ -30,7 +30,7 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
     start_score = evaluate_solution(start_solution, instance);
 
     start = clock();
-    search(instance, &res, 200);
+    search(instance, &res, instance->n / 4);
     end = clock();
 
     score = evaluate_solution(res.solution, instance);
@@ -105,5 +105,5 @@ int main(int argc, char *argv[]) {
   }
 
   fprintf(stdout, "alg,start_score,score,time,evals,steps,starting,solution\n");
-  execute_test(tabusearch, &instance, "tabusearch", K);
+  execute_test(tabusearch, &instance, "TS", K);
 }

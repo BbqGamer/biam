@@ -14,11 +14,9 @@ ALGS = ["G", "S", "SA", "TS"]
 
 if __name__ == "__main__":
     df_all = pd.DataFrame()
-    for file in pathlib.Path("results").glob("*.csv"):
-        if "ls" in file.name:
-            continue
+    for file in pathlib.Path("results").glob("2*.csv"):
         print(file.name)
-        problem = file.name.split(".")[0].split("_")[0]
+        problem = file.name.split(".")[0].split("_")[0][1:]
 
         with open(f"data/qaplib/{problem}.sln") as f:
             lines = f.readlines()

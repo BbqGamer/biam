@@ -104,5 +104,5 @@ int main(int argc, char *argv[]) {
   }
 
   fprintf(stdout, "alg,start_score,score,time,evals,steps,starting,solution\n");
-  execute_test(simulatedannealing, &instance, "simulatedannealing", K);
+  execute_test(simulatedannealing, &instance, "SA", K);
 }

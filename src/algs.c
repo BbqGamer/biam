@@ -163,7 +163,7 @@ void randomwalk(struct QAP *qap, struct QAP_results *res) {
   }
 }
 
-#define ALPHA 0.99
+#define ALPHA 0.95
 double get_sample_delta(struct QAP *qap, struct QAP_results *res) {
   int sum_delta = 0;
   for (int n = 0; n < (qap->n * qap->n); n++) {
@@ -177,15 +177,18 @@ double get_sample_delta(struct QAP *qap, struct QAP_results *res) {
 void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
   int iter = 0;
 
-  int i, j = 0, besti, bestj, tmp, delta;
+  int i, j = 0, besti, bestj, delta;
   res->score = evaluate_solution(res->solution, qap);
-  double temperature = -get_sample_delta(qap, res) / log(0.99);
+  double temperature = -get_sample_delta(qap, res) / log(0.95);
 
   bool improved = true;
   int permi[MAX_QAP_SIZE], permj[MAX_QAP_SIZE];
   int cooldown = 0;
-  struct QAP_results best_sol;
-  deepcopy_QAP_results(&best_sol, res);
+
+  int cur_solution[MAX_QAP_SIZE];
+  int cur_score = res->score;
+  memcpy(cur_solution, res->solution, qap->n * sizeof(int));
+
   int tolerance = 0;
   // tolerance, chain_length -- we want to stop the algorithm after no
   // improvement in P*L
@@ -215,7 +218,7 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
 
       random_permutation(permj, qap->n);
       for (j = 0; j < qap->n; j++) {
-        delta = get_delta(res->solution, permi[i], permj[j], qap);
+        delta = get_delta(cur_solution, permi[i], permj[j], qap);
         if (delta < 0) {
           besti = permi[i];
           bestj = permj[j];
@@ -227,9 +230,6 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
         }
         double random_temp = 0.0;
         random_temp = exp(-1 * (double)delta / temperature);
-        // printf("delta: %d\n", delta);
-        // printf("temp %f\n", temperature);
-        // printf("random_temp: %f\n", random_temp);
         if (random_temp >= (double)rand() / RAND_MAX) {
           cooldown++;
           besti = permi[i];
@@ -245,18 +245,15 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
       tolerance = 0;
 
       res->steps++;
-      res->score += delta;
+      cur_score += delta;
 
-      tmp = res->solution[besti];
-      res->solution[besti] = res->solution[bestj];
-      res->solution[bestj] = tmp;
+      swap(cur_solution, besti, bestj);
     }
-    // printf("OLD SCORE: %d NEW SCORE: %d\n", res->score,best_sol.score);
-    if (res->score < best_sol.score) {
-      deepcopy_QAP_results(&best_sol, res);
+    if (cur_score < res->score) {
+      memcpy(res->solution, cur_solution, qap->n * sizeof(int));
+      res->score = cur_score;
     }
   }
-  deepcopy_QAP_results(res, &best_sol);
 }
 #define PATIENCE 500
 #define MAX_ITERATIONS 10000
@@ -267,7 +264,7 @@ void tabusearch(struct QAP *qap, struct QAP_results *res, int tabutime) {
   res->score = evaluate_solution(res->solution, qap);
 
   int cur_solution[MAX_QAP_SIZE];
-  memcpy(cur_solution, res->solution, sizeof(cur_solution));
+  memcpy(cur_solution, res->solution, n * sizeof(int));
   int cur_score = res->score;
 
   static int tabu_tenure[MAX_QAP_SIZE][MAX_QAP_SIZE];

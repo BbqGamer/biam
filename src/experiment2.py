@@ -13,16 +13,24 @@ instances = [
 ]
 
 
-def benchmark_sa(instance):
-    command = f"nice -n -20 ./build/test_sa data/qaplib/{instance}.dat > results/{instance}_sa.csv"
+def benchmark_ls(instance):
+    command = f"nice -n -20 ./build/test_qap -l -K 5 data/qaplib/{instance}.dat > results/2{instance}_ls.csv"
     os.system(command)
 
-def benchmark_ts(instance):
-    command = f"nice -n -20 ./build/test_ts data/qaplib/{instance}.dat > results/{instance}_ts.csv"
+
+def benchmark_sa(instance):
+    command = f"nice -n -20 ./build/test_sa -K 5 data/qaplib/{instance}.dat > results/2{instance}_sa.csv"
     os.system(command)
+
+
+def benchmark_ts(instance):
+    command = f"nice -n -20 ./build/test_ts -K 5 data/qaplib/{instance}.dat > results/2{instance}_ts.csv"
+    os.system(command)
+
 
 if __name__ == "__main__":
     with multiprocessing.Pool(processes=16) as pool:
+        pool.map(benchmark_ls, instances)
         pool.map(benchmark_sa, instances)
         pool.map(benchmark_ts, instances)
 
