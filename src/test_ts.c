@@ -1,4 +1,4 @@
-#include "qap.h"
+#include "algs.h"
 #include "utils.h"
 #include <assert.h>
 #include <bits/getopt_core.h>
@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-typedef void (*evalfunc)(struct QAP *, struct QAP_results *, int);
+typedef void (*evalfunc)(struct QAP *, struct QAP_results *, int, int);
 
-float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
+float execute_test(evalfunc search, struct QAP *instance, char *name, int K, int patience) {
   long long sum = 0;
   int max = INT_MIN, min = INT_MAX;
   int start_score, score, sum_evaluated = 0;
@@ -30,7 +30,7 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
     start_score = evaluate_solution(start_solution, instance);
 
     start = clock();
-    search(instance, &res, instance->n / 4);
+    search(instance, &res, instance->n / 4, patience);
     end = clock();
 
     score = evaluate_solution(res.solution, instance);
@@ -67,11 +67,15 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
 }
 
 int main(int argc, char *argv[]) {
-  int K = 10;
+  int patience = -1, K = 10;
   int opt;
 
-  while ((opt = getopt(argc, argv, "K:")) != -1) {
+  while ((opt = getopt(argc, argv, "p:K:")) != -1) {
     switch (opt) {
+    case 'p':
+      printf("patience: %s\n", optarg);
+      patience = atoi(optarg);
+      break;
     case 'K':
       K = atoi(optarg);
       break;
@@ -93,6 +97,10 @@ int main(int argc, char *argv[]) {
   fprintf(stderr, "Loaded .dat file! \n");
   instance.timeout_ms = 1000;
 
+  if (patience == -1) {
+    patience = instance.n * 5;
+  }
+
   struct QAP_results res;
   if (read_solution(dat_path, instance.n, &res)) {
     fprintf(stderr, "Loaded .sln file!\n\n");
@@ -105,5 +113,5 @@ int main(int argc, char *argv[]) {
   }
 
   fprintf(stdout, "alg,start_score,score,time,evals,steps,starting,solution\n");
-  execute_test(tabusearch, &instance, "TS", K);
+  execute_test(tabusearch, &instance, "TS", K, patience);
 }

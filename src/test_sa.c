@@ -1,13 +1,13 @@
-#include "qap.h"
+#include "algs.h"
 #include "utils.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-typedef void (*evalfunc)(struct QAP *, struct QAP_results *);
+typedef void (*evalfunc)(struct QAP *, struct QAP_results *, float);
 
-float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
+float execute_test(evalfunc search, struct QAP *instance, char *name, int K, float alpha) {
   long long sum = 0;
   int max = INT_MIN, min = INT_MAX;
   int start_score, score, sum_evaluated = 0;
@@ -29,7 +29,7 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
     start_score = evaluate_solution(start_solution, instance);
 
     start = clock();
-    search(instance, &res);
+    search(instance, &res, alpha);
     end = clock();
 
     score = evaluate_solution(res.solution, instance);
@@ -66,11 +66,15 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
 }
 
 int main(int argc, char *argv[]) {
+  float alpha = 0.95;
   int K = 10;
   int opt;
 
-  while ((opt = getopt(argc, argv, "K:")) != -1) {
+  while ((opt = getopt(argc, argv, "a:K:")) != -1) {
     switch (opt) {
+    case 'a':
+      alpha = atof(optarg);
+      break;
     case 'K':
       K = atoi(optarg);
       break;
@@ -104,5 +108,5 @@ int main(int argc, char *argv[]) {
   }
 
   fprintf(stdout, "alg,start_score,score,time,evals,steps,starting,solution\n");
-  execute_test(simulatedannealing, &instance, "SA", K);
+  execute_test(simulatedannealing, &instance, "SA", K, alpha);
 }

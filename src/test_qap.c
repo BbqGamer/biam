@@ -1,4 +1,4 @@
-#include "qap.h"
+#include "algs.h"
 #include "utils.h"
 #include <assert.h>
 #include <bits/getopt_core.h>

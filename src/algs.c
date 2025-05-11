@@ -163,7 +163,6 @@ void randomwalk(struct QAP *qap, struct QAP_results *res) {
   }
 }
 
-#define ALPHA 0.95
 double get_sample_delta(struct QAP *qap, struct QAP_results *res) {
   int sum_delta = 0;
   for (int n = 0; n < (qap->n * qap->n); n++) {
@@ -174,12 +173,12 @@ double get_sample_delta(struct QAP *qap, struct QAP_results *res) {
   }
   return (double)sum_delta / (double)(qap->n * qap->n);
 }
-void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
+void simulatedannealing(struct QAP *qap, struct QAP_results *res, float alpha) {
   int iter = 0;
 
   int i, j = 0, besti, bestj, delta;
   res->score = evaluate_solution(res->solution, qap);
-  double temperature = -get_sample_delta(qap, res) / log(0.95);
+  double temperature = -get_sample_delta(qap, res) / log(0.90);
 
   bool improved = true;
   int permi[MAX_QAP_SIZE], permj[MAX_QAP_SIZE];
@@ -196,11 +195,11 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
     // Exponential decreasing schema
     if (cooldown == (qap->n * 10)) {
       iter++;
-      temperature *= ALPHA;
+      temperature *= alpha;
       // No improvement over 5 temp levels
 
       // Final convergence check
-      if (temperature <= 0.01) {
+      if (temperature <= 0.02) {
         temperature = 0;
       }
       cooldown = 0;
@@ -255,11 +254,10 @@ void simulatedannealing(struct QAP *qap, struct QAP_results *res) {
     }
   }
 }
-#define PATIENCE 500
 #define MAX_ITERATIONS 10000
 
-void tabusearch(struct QAP *qap, struct QAP_results *res, int tabutime) {
-  int patience = PATIENCE;
+void tabusearch(struct QAP *qap, struct QAP_results *res, int tabutime, int max_patience) {
+  int patience = max_patience;
   int n = qap->n;
   res->score = evaluate_solution(res->solution, qap);
 
@@ -317,7 +315,7 @@ void tabusearch(struct QAP *qap, struct QAP_results *res, int tabutime) {
       tabu_tenure[best_j][best_i] = iteration + tabutime;
 
       if (cur_score < res->score) {
-        patience = PATIENCE;
+        patience = max_patience;
         res->score = cur_score;
         memcpy(res->solution, cur_solution, sizeof(cur_solution));
       } else {
