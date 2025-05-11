@@ -1,5 +1,5 @@
 BUILD_DIR := build
-LDLAGS := -lm
+LDLAGS := -lm -mavx2
 CFLAGS := -Ofast -march=native -flto -funroll-loops -fprefetch-loop-arrays -fno-exceptions -fopenmp -Wall -Wextra -pedantic -Iinclude -g
 TESTS := $(BUILD_DIR)/tests
 TEST_QAP := $(BUILD_DIR)/test_qap

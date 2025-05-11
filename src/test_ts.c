@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
   }
 
   if(optind >= argc) {
-    fprintf(stderr, "Missing .dat file\n", argv[0]);
+    fprintf(stderr, "Missing .dat file\n");
     exit(EXIT_FAILURE);
   }
 

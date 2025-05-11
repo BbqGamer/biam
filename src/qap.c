@@ -16,7 +16,7 @@ void deepcopy_QAP_results(struct QAP_results *dest,
 
 void read_instance(char *filename, struct QAP *qap) {
   FILE *fp = fopen(filename, "r");
-  int i, j, *p;
+  int i, j;
 
   if(fscanf(fp, "%d", &qap->n) != 1) {
     fprintf(stderr, "Could not read n from file\n");

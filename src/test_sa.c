@@ -67,13 +67,25 @@ float execute_test(evalfunc search, struct QAP *instance, char *name, int K) {
 
 int main(int argc, char *argv[]) {
   int K = 10;
+  int opt;
 
-  if(argc < 2) {
-    fprintf(stderr, "Usage: %s <dat_file>\n", argv[0]);
+  while ((opt = getopt(argc, argv, "K:")) != -1) {
+    switch (opt) {
+    case 'K':
+      K = atoi(optarg);
+      break;
+    default:
+      fprintf(stderr, "Usage: %s [-K integer]\n", argv[0]);
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  if(optind >= argc) {
+    fprintf(stderr, "Missing .dat file\n");
     exit(EXIT_FAILURE);
   }
 
-  char *dat_path = argv[1];
+  char *dat_path = argv[optind];
 
   struct QAP instance;
   read_instance(dat_path, &instance);
