@@ -120,56 +120,42 @@ int get_delta(int *sol, int i, int j, struct QAP *qap) {
   */
 
   int n = qap->n;
-  int *A = qap->A;
-  int *B = qap->B;
-  int *AT = qap->_AT;
-  int *BT = qap->_BT;
-
   int pi = sol[i];
   int pj = sol[j];
 
-  int *Ai = A + i * n;
-  int *Aj = A + j * n;
-  int *Bpi = B + pi * n;
-  int *Bpj = B + pj * n;
+  int *Ai = qap->A + i * n;
+  int *Aj = qap->A + j * n;
+  int *Bpi = qap->B + pi * n;
+  int *Bpj = qap->B + pj * n;
 
   int delta = (Aj[j] - Ai[i]) * (Bpi[pi] - Bpj[pj]) \
             + (Aj[i] - Ai[j]) * (Bpi[pj] - Bpj[pi]);
 
   int sum = 0;
-
   // For convenient pointer arithmetic:
   //  - Ai_ptr, Aj_ptr will traverse row i and j in A for columns k=0..n-1
   //  - Aki_ptr, Akj_ptr will traverse column i and j in A for rows k=0..n-1
-  int *Ai_ptr = Ai;     // points to A[i*n + k] as k increments
-  int *Aj_ptr = Aj;     // points to A[j*n + k]
-  int *Aki_ptr = AT + i * n; // points to A[k*n + i]
-  int *Akj_ptr = AT + j * n; // points to A[k*n + j]
+  int *Ai_ptr = Ai;          // points to A[i*n + k] as k increments
+  int *Aj_ptr = Aj;          // points to A[j*n + k]
+  int *Aki_ptr = qap->_AT + i * n; // points to A[k*n + i]
+  int *Akj_ptr = qap->_AT + j * n; // points to A[k*n + j]
 
-  // Loop over all k, skip i and j
+  int *BTpi = qap->_BT + pi * n;
+  int *BTpj = qap->_BT + pj * n;
+
   for (int k = 0; k < n; k++) {
     if (k != i && k != j) {
-      // This is row p_k in B
       int s_k = sol[k];
-      int *Bsk = B + s_k * n;
 
-      // Gather B–related differences in local variables
-      int b_diff1 = Bpi[s_k] - Bpj[s_k]; // (B[p_i p_k] - B[p_j p_k])
-      int b_diff2 = Bsk[pi] - Bsk[pj];   // (B[p_k p_i] - B[p_k p_j])
+      int a_diff1 = (Aj_ptr[k] - Ai_ptr[k]);     // (A[jk] - A[ik])
+      int a_diff2 = (Akj_ptr[k] - Aki_ptr[k]);   // (A[kj] - A[ki])
 
-      // Gather A–related differences
-      int a_diff1 = (*Aj_ptr - *Ai_ptr);   // (A[j,k] - A[i,k])
-      int a_diff2 = (*Akj_ptr - *Aki_ptr); // (A[k,j] - A[k,i])
+      int b_diff1 = Bpi[s_k] - Bpj[s_k];     // (B[p_i p_k] - B[p_j p_k])
+      int b_diff2 = BTpi[s_k] - BTpj[s_k];   // (B[p_k p_i] - B[p_k p_j])
+
 
       sum += a_diff1 * b_diff1 + a_diff2 * b_diff2;
     }
-
-    // Advance all pointers to move from column k to column k+1 in Ai,Aj
-    // and from row k to row k+1 for Aki, Akj
-    Ai_ptr++;
-    Aj_ptr++;
-    Aki_ptr++;
-    Akj_ptr++;
   }
 
   delta += sum;
